@@ -102,36 +102,23 @@ html, body, #root {
 }
 
 /* =========================================
-   ✅ Vendor Select（選系統頁）
-   目標：兩張卡不黏、大小固定、不滿版、按鈕綠框
+   Vendor Select
    ========================================= */
-
-.vendorStage{
-  width: 100%;
-  display: flex;
-  align-items: flex-start;
-  justify-content: flex-start;
-  padding-left: 90px;
-  padding-top: 30px;
-}
-
-/* ✅ 兩張卡容器：用 flex + gap，永遠拉開 */
-.vendorCardList{
+.vendorGrid2{
   display:flex;
-  gap: 36px;              /* ✅ 兩張卡距離 */
-  flex-wrap: nowrap;      /* ✅ 不要掉到下一行 */
+  gap: 36px;
+  flex-wrap: nowrap;
   align-items: flex-start;
 }
 
-/* ✅ 卡片大小固定（你要的白框大小就靠這裡） */
 .vendorCard{
   width: 420px;
   border: 2px solid #00ff66;
   padding: 18px;
   background: rgba(0, 255, 102, 0.04);
+  flex: 0 0 420px;
 }
 
-/* LOGO 區 */
 .vendorImgWrap {
   height: 220px;
   border: 1px solid rgba(0, 255, 102, 0.35);
@@ -144,11 +131,7 @@ html, body, #root {
 
 .vendorName { margin-top: 12px; font-size: 22px; font-weight: 800; }
 .vendorCode { margin-top: 8px; font-size: 13px; opacity: 0.9; }
-.vendorCodeHidden{ display:none; }
 
-.vendorPickRow{ margin-top: 14px; }
-
-/* ✅ 進入按鈕：綠色框、無底色、大一點 */
 .vendorPickBtn{
   width: 100%;
   height: 44px;
@@ -158,13 +141,14 @@ html, body, #root {
   cursor: pointer;
   font-size: 16px;
   letter-spacing: 1px;
+  margin-top: 14px;
 }
 .vendorPickBtn:hover{
   background: rgba(0,255,102,0.12);
 }
 
 /* =========================================
-   ✅ 左側：遊戲列表
+   左側：遊戲列表
    ========================================= */
 .gamesDockLeft {
   width: 420px;
@@ -213,11 +197,11 @@ html, body, #root {
 .gameMeta { font-size: 12px; opacity: 0.85; }
 
 .gamePickBtnSmall{
-  height: 40px;                    /* ✅ 大一點 */
+  height: 40px;
   padding: 0 16px;
-  background: transparent;          /* ✅ 無底色 */
+  background: transparent;
   color: #00ff66;
-  border: 2px solid #00ff66;        /* ✅ 綠框 */
+  border: 2px solid #00ff66;
   cursor: pointer;
 }
 .gamePickBtnSmall:hover{
@@ -226,8 +210,16 @@ html, body, #root {
 
 .refreshHint{ margin-top: 12px; font-size: 12px; opacity: 0.75; text-align:center; }
 
+/* ✅ 介紹頁展開列表間距 */
+.introExpandList{
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
 /* =========================================
-   ✅ 右側 Shell
+   右側 Shell
    ========================================= */
 .rightShell {
   flex: 1;
@@ -239,7 +231,6 @@ html, body, #root {
 .roomsHeader { text-align: center; margin-top: 6px; margin-bottom: 12px; }
 .roomsTitle { font-size: 18px; font-weight: 700; margin-bottom: 10px; }
 
-/* ✅ 分頁按鈕：綠色框、無底色、比較大 */
 .pageBtns{
   display:flex;
   justify-content:center;
@@ -263,7 +254,6 @@ html, body, #root {
   background: rgba(0,255,102,0.18);
 }
 
-/* ✅ 右側紅框滾動區 */
 .rightScroll {
   border: 2px solid rgba(255, 0, 0, 0.55);
   padding: 18px;
@@ -378,268 +368,57 @@ html, body, #root {
   background: rgba(0,255,102,0.12);
 }
 
-/* ✅ 全域按鈕保險：不要白底 */
 button{ outline: none; }
 
-/* ✅ 強制選系統兩張卡永遠左右排，不要上下 */
-.vendorGrid2,
-.vendorCardList{
-  display: flex !important;
-  flex-direction: row !important;
-  flex-wrap: nowrap !important;
-  gap: 36px !important;
-  align-items: flex-start !important;
-}
-
-/* ✅ 避免外層寬度不夠導致擠成上下 */
-.vendorStage{
-  width: 100% !important;
-}
-
-.vendorCard{
-  width: 420px !important;
-  flex: 0 0 420px !important; /* ✅ 不要縮 */
-}
-
-/* ✅ 修登入頁背景只剩上面一條：強制登入頁撐滿全螢幕 */
-.app.loginOnly{
-  height: 100vh;
-  min-height: 100vh;
-  width: 100vw;
-  position: relative;   /* 給背景 absolute 對齊用 */
-  overflow: hidden;
-}
-
-/* ✅ 登入頁：強制整頁撐滿 */
-.app.loginOnly{
-  min-height: 100vh;
-  height: 100vh;
-  width: 100vw;
-  position: relative;
-  overflow: hidden;
-}
-
-/* ✅ 關鍵：登入頁背景影片用 fixed，永遠鋪滿整個螢幕 */
-.app.loginOnly .mainVideo{
-  position: fixed;        /* ← 改這個 */
-  inset: 0;
-  width: 100vw;
-  height: 100vh;
-  object-fit: cover;
-  object-position: center;
-  opacity: 0.35;
-  z-index: 0;
-  pointer-events: none;
-}
-
-/* ✅ 登入內容要在影片上面 */
-.app.loginOnly .panel,
-.app.loginOnly .loginPanel{
-  position: relative;
-  z-index: 1;
-}
-
-/* ✅ 登入頁：置中＋再往上一點點 */
-.app.loginOnly{
-  display: flex;
-  align-items: center;       /* 垂直置中 */
-  justify-content: center;   /* 水平置中 */
-  padding: 0;                /* 避免被其他 padding 影響 */
-}
-
-/* 登入面板本體：往上提 */
-.app.loginOnly .loginPanel{
-  margin-top: 0 !important;               /* 取消你原本的 40px */
-  transform: translateY(-70px);           /* ✅ 往上提（自己改 -50~-90 都行） */
-}
-
-/* 如果你是用 .panel 當外框，就一起保險 */
-.app.loginOnly .panel{
-  margin: 0 auto;
-}
-
-/* =========================
-   ✅ 登入頁：真正置中 + 標題回來
-   （請放 App.css 最下面）
-   ========================= */
-
-/* 1) 登入頁：改成 flex 置中 */
-.app.loginOnly{
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  height: 100vh !important;
-  width: 100vw !important;
-  overflow: hidden !important;
-  position: relative !important;
-}
-
-/* 2) 把登入內容整組抓出來置中（你原本有 panel / loginPanel 就用它們） */
-.app.loginOnly .panel,
-.app.loginOnly .loginPanel {
-  position: relative !important;
-  z-index: 2 !important;
-  width: 720px !important;
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-
-  /* ❌ 刪掉這行 */
-  /* transform: translateY(-90px) !important; */
-
-  /* ✅ 改成 margin 控制位置 */
-  margin-top: 40px !important;
-}
-
-/* 3) 標題/版本：強制顯示 + 顏色 */
-.app.loginOnly .title{
-  display: block !important;
-  color: #00ff66 !important;
-  font-size: 42px !important;
-  font-weight: 900 !important;
-  margin: 0 0 6px 0 !important;
-  text-align: center !important;
-}
-.app.loginOnly .version{
-  display: block !important;
-  color: rgba(0,255,102,0.9) !important;
-  margin: 0 0 22px 0 !important;
-  text-align: center !important;
-}
-
-/* 4) 輸入框/按鈕：置中顯示 */
-.app.loginOnly .input,
-.app.loginOnly .button{
-  display: block !important;
-  margin-left: auto !important;
-  margin-right: auto !important;
-}
-
-/* 5) 如果你有背景影片層，確保它在下面 */
-.app.loginOnly .mainVideo{
-  z-index: 0 !important;
-}
-
 /* =========================================================
-   ✅【只改這裡】玩法介紹（全屏暗底 + 文字 + 右上 X）
-   目標：背景影片照播、只顯示玩法文字、點 X 回來
+   ✅ 玩法介紹全屏（影片 / 圖片）
    ========================================================= */
-
 .introFullMask{
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.55);  /* 半透明，影片仍看得到 */
   z-index: 99999;
-
+  background: rgba(0,0,0,0.55);
   display: flex;
-  align-items: center;
   justify-content: center;
-
+  align-items: center;
   padding: 24px;
-
-  background: rgba(0,0,0,0.72);
 }
 
 .introX{
   position: fixed;
-  top: 16px;
+  top: 18px;
   right: 18px;
-  width: 44px;
-  height: 44px;
-  border: none;
-  border-radius: 999px;
-  background: rgba(0,0,0,0.45);
+  z-index: 100000;
+  width: 52px;
+  height: 52px;
+  border: 0;
+  background: transparent;
   color: #fff;
-  font-size: 28px;
-  line-height: 44px;
+  font-size: 44px;
+  line-height: 52px;
   cursor: pointer;
-  z-index: 100000;
+  text-shadow: 0 2px 10px rgba(0,0,0,.8);
 }
 
-.introContent{
-  position: fixed;
-  left: 50%;
-  top: 46%;                 /* ✅ 置中再上一點點 */
-  transform: translate(-50%, -50%);
-  width: min(860px, 90vw);
-  max-height: 70vh;
-  overflow: auto;
-  padding: 20px 24px;
-  background: transparent;  /* ✅ 不要任何框/卡片 */
-  z-index: 100000;
-}
-
-.introTitle{
-  color: #fff;
-  font-size: 22px;
-  font-weight: 800;
-  margin-bottom: 10px;
-  letter-spacing: 1px;
-}
-
-.introText2{
-  color: rgba(255,255,255,0.92);
-  line-height: 1.9;
-  font-size: 16px;
-  white-space: pre-wrap;
-}
-
-/* ✅ 選系統卡片：讓「進入」按鈕往下移一點，不黏代碼 */
-.vendorCard .vendorPickBtn,
-.vendorCard .vendorPickBtnWide,
-.vendorCard .backBtn{
-  margin-top: 14px;
-}
-
-/* 全屏暗底 */
-.introFullMask{
-  position:fixed;
-  inset:0;
-  z-index:9999;
-  background:rgba(0,0,0,.55); /* 類似遊戲內的暗罩 */
-  display:flex;
-  justify-content:center;
-  align-items:center;
-}
-
-/* 右上角 X（白色） */
-.introX{
-  position:fixed;
-  top:18px;
-  right:18px;
-  z-index:10000;
-  width:52px;height:52px;
-  border:0;
-  background:transparent;
-  color:#fff;
-  font-size:44px;
-  line-height:52px;
-  cursor:pointer;
-  text-shadow:0 2px 10px rgba(0,0,0,.8);
-}
-
-/* ✅ 重點：不要卡片、不要框，純文字容器 */
 .introCard{
-  width:min(820px, calc(100vw - 120px));
+  width: min(980px, calc(100vw - 120px));
   height: 92vh;
-  max-height:92vh;
-  overflow:hidden;
-
-  background:transparent;   /* 沒背景 */
-  border:none;              /* 沒框 */
-  box-shadow:none;          /* 沒陰影 */
-  padding:0;
+  max-height: 92vh;
+  overflow: hidden;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+  position: relative;
 }
 
-/* ✅ 標題區：上下金色漸層線 */
 .introCardHeader{
-  position:relative;
-  text-align:center;
-  padding:22px 0 20px;
-  margin-bottom:28px;
+  position: relative;
+  text-align: center;
+  padding: 22px 0 20px;
+  margin-bottom: 18px;
 }
 
-/* 上下金線 */
 .introCardHeader::before,
 .introCardHeader::after{
   content:"";
@@ -647,7 +426,7 @@ button{ outline: none; }
   left:0; right:0;
   height:2px;
   opacity:.95;
-  background:linear-gradient(
+  background: linear-gradient(
     90deg,
     rgba(212,175,55,0),
     rgba(212,175,55,.95),
@@ -657,7 +436,6 @@ button{ outline: none; }
 .introCardHeader::before{ top:0; }
 .introCardHeader::after{ bottom:0; }
 
-/* 標題文字 */
 .introCardTitle{
   color:#fff;
   font-size:48px;
@@ -666,69 +444,71 @@ button{ outline: none; }
   text-shadow:0 2px 14px rgba(0,0,0,.8);
 }
 
-/* 內文容器 */
 .introCardBody{
-  padding:0 6px;
-}
-
-/* 文字排版（靠近你圖的行距/顏色） */
-.introText2{
-  color:rgba(255,255,255,.85);
-  font-size:18px;
-  line-height:2.0;
-  text-shadow:0 2px 10px rgba(0,0,0,.65);
-}
-
-/* 每行間距 */
-.introText2 > div{
-  margin:8px 0;
-}
-
-/* 金色重點字（你圖裡那種黃金字） */
-.introText2 .hl{
-  color:#d4af37;
-  font-weight:800;
-}
-
-/* 滾動條可選 */
-.introCard::-webkit-scrollbar{ width:10px; }
-.introCard::-webkit-scrollbar-thumb{
-  background:rgba(255,255,255,.12);
-  border-radius:99px;
-}
-
-/* 內文 */
-.introText2{
-  color:rgba(255,255,255,.9);
-  font-size:18px;
-  line-height:2.1;
-  text-shadow:0 2px 10px rgba(0,0,0,.7);
-}
-
-/* 橘色公式文字（官方感） */
-.introText2 .orange{
-  color:#f5a623; /* 橘色，不是金色 */
-  font-weight:700;
-}
-
-/* 縮排用 */
-.introIndent{
-  padding-left:28px;
-}
-
-.introImgWrap {
-  width: 100%;
+  height: calc(92vh - 140px);
   display: flex;
-  justify-content: center;
   align-items: center;
-  padding: 16px 0;
+  justify-content: center;
 }
 
-.introImg {
+/* ✅ 影片容器 */
+.introMediaWrap{
   width: 100%;
-  max-width: 940px; /* 你想更大就拉高 */
-  height: auto;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.introMedia{
+  width: 100%;
+  height: 100%;
+  max-width: 980px;
+  max-height: calc(92vh - 160px);
+  object-fit: contain;
+  background: rgba(0,0,0,0.35);
+}
+
+/* ✅ 圖片容器（讓圖片真正放大、不要縮成小一坨） */
+.introImgWrap{
+  width: 100%;
+  height: 100%;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+
+.introImg{
+  width: 100%;
+  height: 100%;
+  max-width: 980px;
+  max-height: calc(92vh - 160px);
   object-fit: contain;
   user-select: none;
   pointer-events: none;
+}
+
+/* ✅ 右側 dots */
+.introDots{
+  position: absolute;
+  right: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 10;
+}
+
+.dot{
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.55);
+  background: rgba(255,255,255,0.15);
+  cursor: pointer;
+  padding: 0;
+}
+.dotActive{
+  background: rgba(255,255,255,0.95);
 }
