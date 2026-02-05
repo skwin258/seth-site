@@ -48,7 +48,7 @@ function mulberry32(seed) {
   let a = seed >>> 0;
   return function () {
     a |= 0;
-    a = (a + 0x6d2b79f5) | 0;
+    a = (a + 0x6D2B79F5) | 0;
     let t = Math.imul(a ^ (a >>> 15), 1 | a);
     t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
@@ -163,9 +163,10 @@ function MainWithVideo({ className = "", src = bgVideo, children }) {
     const v = videoRef.current;
     if (!v) return;
 
+    // 這三行是關鍵：確保切換 src 一定生效
     try {
       v.pause();
-      v.load();
+      v.load(); // 讓瀏覽器重新讀 src
       const p = v.play();
       if (p && typeof p.catch === "function") p.catch(() => {});
     } catch {}
@@ -197,7 +198,7 @@ export default function App() {
    * State
    * ========================= */
   const [authed, setAuthed] = useState(true);
-  const [page, setPage] = useState("menuVendorPick"); // login/menuVendorPick/rooms/introGames
+  const [page, setPage] = useState("menuVendorPick"); // login/menuVendorPick/rooms/introVendorPick/introGames
 
   const [account, setAccount] = useState("");
   const [pin, setPin] = useState("");
@@ -212,14 +213,15 @@ export default function App() {
   // ✅ 遊戲介紹
   const [introOpen, setIntroOpen] = useState(false);
   const [introGameId, setIntroGameId] = useState("G-1");
+
+  // ✅ 介紹頁：目前第幾頁（0~6）
   const [introPage, setIntroPage] = useState(0);
+
+  // ✅ 新增：介紹頁「展開中的系統商」(ATG/GR/null)
   const [introExpandedVendorId, setIntroExpandedVendorId] = useState(null);
 
-  // ✅ 背景影片來源
+  // ✅ 背景影片來源（各頁自己控制；避免被介紹頁汙染）
   const [mainVideoSrc, setMainVideoSrc] = useState(bgVideo);
-
-  // ✅ 介紹頁「第 0 頁」要播的影片 ref（確保一定會 play）
-  const introVideoRef = React.useRef(null);
 
   // ✅ 3 分鐘刷新一次（避免每秒 re-render 造成 video 重掛載）
   const [bucket3Min, setBucket3Min] = useState(() => Math.floor(Date.now() / 180000));
@@ -233,6 +235,7 @@ export default function App() {
    * ========================= */
   const vendorCode = useMemo(() => randCode(10), [activeVendorId]);
 
+  // ✅ rooms 用的遊戲列表（不動）
   const gamesForRooms = useMemo(() => {
     return activeVendorId === "GR" ? GR_GAMES : ATG_GAMES;
   }, [activeVendorId]);
@@ -265,6 +268,7 @@ export default function App() {
     });
   }, [activeGameId, roomPage, bucket3Min, startIndex, hotSet]);
 
+  // ✅ 介紹內容（7頁 title；文字不顯示，但保留資料結構不動）
   const INTRO_PAGES = useMemo(() => {
     return [
       { title: "遊戲玩法", lines: [] },
@@ -277,6 +281,7 @@ export default function App() {
     ];
   }, []);
 
+  // ✅ 7 張圖片（依 introPage 切換）
   const INTRO_IMAGES = useMemo(() => {
     return [intro1, intro2, intro3, intro4, intro5, intro6, intro7];
   }, []);
@@ -320,6 +325,8 @@ export default function App() {
       if (e.key === "Escape") {
         setSelectedRoom(null);
         setIntroOpen(false);
+
+        // ✅ 關閉回 bg
         setMainVideoSrc(bgVideo);
       }
     }
@@ -327,20 +334,24 @@ export default function App() {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  // ✅ 切頁時的背景控制：introGames 不要被汙染
-  useEffect(() => {
-    if (page === "introGames") {
-      if (!introOpen) setMainVideoSrc(bgVideo);
-      setIntroOpen(false);
-      setIntroPage(0);
-      setIntroExpandedVendorId(null);
-      setIntroGameId("G-1");
-      return;
-    }
+  // ✅ 修正「介紹頁汙染影片」：
+useEffect(() => {
+  // ✅ 只在「切換到 introGames 頁面」時，確保背景是 bgVideo
+  // ✅ 但不要在這裡動 sethGameplay（sethGameplay 只在按「介紹」時才切）
+  if (page === "introGames") {
+    if (!introOpen) setMainVideoSrc(bgVideo);
 
-    setMainVideoSrc(bgVideo);
     setIntroOpen(false);
-  }, [page]); // eslint-disable-line react-hooks/exhaustive-deps
+    setIntroPage(0);
+    setIntroExpandedVendorId(null);
+    setIntroGameId("G-1");
+    return;
+  }
+
+  // ✅ 其他頁面：背景都回 bg，且關閉介紹
+  setMainVideoSrc(bgVideo);
+  setIntroOpen(false);
+}, [page]); 
 
   // ✅ 滾輪切頁（節流）
   useEffect(() => {
@@ -367,23 +378,6 @@ export default function App() {
     return () => window.removeEventListener("wheel", onWheel);
   }, [introOpen, INTRO_TOTAL]);
 
-  // ✅ 只要「介紹開啟 + 第 0 頁」，就強制讓玩法影片一定播放
-  useEffect(() => {
-    if (!introOpen) return;
-    if (introPage !== 0) return;
-
-    const v = introVideoRef.current;
-    if (!v) return;
-
-    try {
-      v.pause();
-      v.currentTime = 0;
-      v.load();
-      const p = v.play();
-      if (p && typeof p.catch === "function") p.catch(() => {});
-    } catch {}
-  }, [introOpen, introPage]);
-
   /* =========================
    * Sidebar（共用）
    * ========================= */
@@ -402,6 +396,7 @@ export default function App() {
       <div
         className={menu === "遊戲介紹" ? "menuBtnActive" : "menuBtn"}
         onClick={() => {
+          // ✅ 改這裡：不再去 introVendorPick，直接到 introGames
           setMenu("遊戲介紹");
           setPage("introGames");
           setIntroExpandedVendorId(null);
@@ -455,6 +450,7 @@ export default function App() {
     );
   }
 
+  // 其餘頁面用 switch 統一回傳
   switch (page) {
     /* =========================
      * 2) 外掛選房程式：選系統
@@ -628,10 +624,11 @@ export default function App() {
       );
 
     /* =========================
-     * 4) 遊戲介紹主頁（可展開/收合）
+     * 4) 遊戲介紹主頁（✅ 直接進來；兩個系統商可展開/收合）
      * ========================= */
     case "introGames":
     default: {
+      // ✅ 介紹頁：兩個系統商 + 遊戲列表（展開才顯示）
       const vendorsForIntro = [
         { id: "ATG", name: "ATG電子", logo: vendorATG, games: ATG_GAMES },
         { id: "GR", name: "GR電子", logo: vendorGR || vendorATG, games: GR_GAMES },
@@ -645,13 +642,17 @@ export default function App() {
 
       return (
         <div className="app">
+          {/* ✅ 介紹開啟時：Sidebar 消失 */}
           {!isIntroFullScreen && <Sidebar />}
 
           <MainWithVideo src={mainVideoSrc}>
+            {/* ✅ 介紹開啟時：左側列表也消失 */}
             {!isIntroFullScreen && (
               <div className="gamesDockLeft">
                 <div className="gamesTopBar">
                   <div className="gamesTitle">遊戲</div>
+
+                  {/* ✅ 返回：改成「收合」(不離開頁面) */}
                   <button
                     className="backBtn"
                     onClick={() => {
@@ -670,6 +671,7 @@ export default function App() {
 
                     return (
                       <div key={v.id}>
+                        {/* ✅ 系統商列：點一下展開/收合 */}
                         <div
                           className="gameRow"
                           style={{ cursor: "pointer" }}
@@ -696,8 +698,9 @@ export default function App() {
                           </button>
                         </div>
 
+                        {/* ✅ 展開區：遊戲列表 */}
                         {expanded && (
-                          <div className="introExpandList">
+                          <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 12 }}>
                             {v.games.map((g, idx) => {
                               const isFirstATG = v.id === "ATG" && idx === 0;
 
@@ -715,11 +718,11 @@ export default function App() {
                                   <button
                                     className="gamePickBtnSmall"
                                     onClick={() => {
+                                      // ✅ 目前只做 ATG 第一個（戰神賽特）的介紹效果
                                       if (isFirstATG) {
                                         setIntroGameId(g.id);
                                         setIntroPage(0);
 
-                                        // ✅ 介紹背景先切到賽特玩法影片
                                         setMainVideoSrc(sethGameplay);
                                         setIntroOpen(true);
                                       } else {
@@ -744,10 +747,10 @@ export default function App() {
             )}
           </MainWithVideo>
 
-          {/* ✅ 全屏暗底（第0頁播影片，其餘頁放PNG） */}
+          {/* ✅ 全屏暗底（沒有框線） */}
           {introOpen && (
-            <div
-              className="introFullMask"
+            <div 
+              className="introFullMask" 
               onClick={() => {
                 setIntroOpen(false);
                 setMainVideoSrc(bgVideo);
@@ -758,7 +761,7 @@ export default function App() {
                 onClick={(e) => {
                   e.stopPropagation();
                   setIntroOpen(false);
-                  setMainVideoSrc(bgVideo);
+                  setMainVideoSrc(bgVideo); // ✅ 關閉回 bg
                 }}
                 aria-label="Close"
                 type="button"
@@ -773,40 +776,30 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* ✅ 核心：第0頁顯示影片，其餘顯示圖片 */}
+                {/* ✅ 下面只放 PNG，不放任何文字 */}
                 <div className="introCardBody">
-                  {introPage === 0 ? (
-                    <div className="introMediaWrap">
-                      <video
-                        ref={introVideoRef}
-                        className="introMedia"
-                        src={sethGameplay}
-                        autoPlay
-                        muted
-                        playsInline
-                        preload="auto"
-                        onEnded={(e) => {
-                          const v = e.currentTarget;
-                          v.currentTime = 0;
-                          v.play();
-                        }}
-                      />
-                    </div>
-                  ) : (
-                    <div className="introImgWrap">
-                      <img
-                        className="introImg"
-                        src={INTRO_IMAGES[introPage] || INTRO_IMAGES[0]}
-                        alt={INTRO_PAGES[introPage]?.title || "intro"}
-                        draggable={false}
-                      />
-                    </div>
-                  )}
+                  <div className="introImgWrap">
+                    <img
+                      className="introImg"
+                      src={INTRO_IMAGES[introPage] || INTRO_IMAGES[0]}
+                      alt={INTRO_PAGES[introPage]?.title || "intro"}
+                      draggable={false}
+                    />
+                  </div>
                 </div>
 
-                {/* ✅ 右側 7 個點 */}
+                {/* ✅ 右側 7 個點（取代底部 1/7 與 dots；不顯示滾動標誌） */}
                 <div
-                  className="introDots"
+                  style={{
+                    position: "absolute",
+                    right: 18,
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 12,
+                    zIndex: 10,
+                  }}
                   onClick={(e) => e.stopPropagation()}
                 >
                   {Array.from({ length: INTRO_TOTAL }).map((_, idx) => {
@@ -817,7 +810,15 @@ export default function App() {
                         type="button"
                         aria-label={`Page ${idx + 1}`}
                         onClick={() => setIntroPage(idx)}
-                        className={active ? "dot dotActive" : "dot"}
+                        style={{
+                          width: 10,
+                          height: 10,
+                          borderRadius: 999,
+                          border: "1px solid rgba(255,255,255,0.55)",
+                          background: active ? "rgba(255,255,255,0.95)" : "rgba(255,255,255,0.15)",
+                          cursor: "pointer",
+                          padding: 0,
+                        }}
                       />
                     );
                   })}
