@@ -778,22 +778,6 @@ useEffect(() => {
 
                 {/* ✅ 下面只放 PNG，不放任何文字 */}
                 <div className="introCardBody">
-                  <video
-                    src={sethGameplay}
-                    autoPlay
-                    muted
-                    playsInline
-                    loop
-                    preload="auto"
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      objectFit: "contain",
-                      borderRadius: 12,
-                     background: "black",
-                  }}   
-                 />    
-               ) : (
                   <div className="introImgWrap">
                     <img
                       className="introImg"
@@ -802,8 +786,7 @@ useEffect(() => {
                       draggable={false}
                     />
                   </div>
-                )}
-               </div>
+                </div>
 
                 {/* ✅ 右側 7 個點（取代底部 1/7 與 dots；不顯示滾動標誌） */}
                 <div
