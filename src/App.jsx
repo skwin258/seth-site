@@ -138,10 +138,10 @@ function genRate(rng, isHot) {
  * ========================= */
 const ATG_GAMES = [
   { id: "戰神賽特", name: "戰神賽特", img: game1, totalRooms: 3000, pages: 6 },
-  { id: "G-2", name: "武俠", img: game2, totalRooms: 3000, pages: 6 },
-  { id: "G-3", name: "赤三國", img: game3, totalRooms: 1000, pages: 2 },
-  { id: "G-4", name: "孫行者", img: game4, totalRooms: 500, pages: 1 },
-  { id: "G-5", name: "覺醒之力", img: game5, totalRooms: 500, pages: 1 },
+  { id: "覺醒之力", name: "覺醒之力", img: game2, totalRooms: 3000, pages: 6 },
+  { id: "赤三國", name: "赤三國", img: game3, totalRooms: 1000, pages: 2 },
+  { id: "孫行者", name: "孫行者", img: game4, totalRooms: 500, pages: 1 },
+  { id: "武俠", name: "武俠", img: game5, totalRooms: 500, pages: 1 },
 ];
 
 const GR_GAMES = [
@@ -539,7 +539,7 @@ useEffect(() => {
                 })}
               </div>
 
-              <div className="refreshHint">3 分鐘刷新一次（區段：{bucket3Min}）</div>
+              <div className="refreshHint">實時更新（區段：{bucket3Min}）</div>
             </div>
 
             <div className="rightShell">
@@ -742,7 +742,7 @@ useEffect(() => {
                   })}
                 </div>
 
-                <div className="refreshHint">（展示框架用）</div>
+                <div className="refreshHint">（更多系統正在開發中）</div>
               </div>
             )}
           </MainWithVideo>
