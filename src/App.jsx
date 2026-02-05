@@ -253,7 +253,7 @@ export default function App() {
     });
   }, [activeGame.id, activeGame.totalRooms, bucket3Min]);
 
-  const VISIBLE_PER_PAGE = 30;
+  const VISIBLE_PER_PAGE = 500;
   const startIndex = (roomPage - 1) * 500 + 1;
 
   const rooms = useMemo(() => {
