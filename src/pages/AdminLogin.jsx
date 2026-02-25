@@ -15,15 +15,31 @@ export default function AdminLogin() {
     return account.trim().length > 0 && password.trim().length > 0 && !loading;
   }, [account, password, loading]);
 
-  function doLogin() {
+  async function doLogin() {
     if (!canSubmit) return;
     setErr("");
     setLoading(true);
+
     try {
-      adminLogin(account.trim(), password.trim());
+      const a = account.trim();
+      const p = password.trim();
+
+      // ✅ 改成 await（API 版一定是 async）
+      const result = await adminLogin(a, p);
+
+      // 相容：如果 authService 回 {ok, msg, admin} 這種格式
+      if (result && typeof result === "object" && "ok" in result) {
+        if (!result.ok) {
+          setErr(result.msg || "登入失敗");
+          return;
+        }
+      }
+
+      // ✅ 成功就進後台
       nav("/admin", { replace: true });
     } catch (e) {
       setErr(e?.message || "登入失敗");
+    } finally {
       setLoading(false);
     }
   }
@@ -51,6 +67,7 @@ export default function AdminLogin() {
                 onChange={(e) => setAccount(e.target.value)}
                 onKeyDown={onKeyDown}
                 autoFocus
+                autoComplete="username"
               />
             </div>
 
@@ -63,6 +80,7 @@ export default function AdminLogin() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 onKeyDown={onKeyDown}
+                autoComplete="current-password"
               />
             </div>
 

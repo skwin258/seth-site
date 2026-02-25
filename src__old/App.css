@@ -1,0 +1,2599 @@
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  background: #000;
+}
+* { box-sizing: border-box; }
+
+.app {
+  display: flex;
+  width: 100vw;
+  height: 100vh;
+  background: #000;
+  color: #00ff66;
+  font-family: "Microsoft JhengHei", "Segoe UI", Arial, sans-serif;
+  overflow: hidden;
+}
+.app.loginOnly { display: block; }
+
+/* ===== Sidebar ===== */
+.sidebar {
+  width: 220px;
+  border-right: 2px solid #00ff66;
+  padding: 20px;
+  z-index: 2;
+}
+.menuBtnActive, .menuBtn {
+  border: 2px solid #00ff66;
+  padding: 12px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  text-align: center;
+}
+.menuBtnActive { background: rgba(0, 255, 102, 0.08); }
+.divider {
+  height: 1px;
+  background: rgba(0, 255, 102, 0.35);
+  margin: 16px 0;
+}
+.logoutBtn {
+  width: 100%;
+  padding: 10px;
+  background: #000;
+  color: #00ff66;
+  border: 2px solid #00ff66;
+  cursor: pointer;
+}
+
+/* ===== Main + Background Video ===== */
+.main {
+  flex: 1;
+  padding: 24px 30px;
+  display: flex;
+  gap: 22px;
+  overflow: hidden;
+  position: relative;
+}
+.mainVideo{
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  opacity: 0.35;
+  z-index: 0;
+  pointer-events: none;
+}
+.mainContent{
+  position: relative;
+  z-index: 1;
+  display: flex;
+  gap: 22px;
+  width: 100%;
+}
+.main.single {
+  justify-content: center;
+  align-items: flex-start;
+}
+
+/* ===== Login ===== */
+.panel { width: 720px; }
+.loginPanel{ margin-top: 40px; }
+.title { font-size: 36px; margin: 0 0 6px 0; font-weight: 800; }
+.version { margin-bottom: 28px; font-size: 14px; }
+.input {
+  width: 420px;
+  padding: 12px;
+  margin-bottom: 14px;
+  font-size: 16px;
+  display: block;
+  border: 1px solid #bbb;
+  outline: none;
+}
+.button {
+  width: 420px;
+  padding: 14px;
+  background: #000;
+  color: #00ff66;
+  border: 2px solid #00ff66;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+/* =========================================
+   ✅ Vendor Select（選系統頁）
+   ========================================= */
+
+.vendorStage{
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding-left: 90px;
+  padding-top: 30px;
+}
+.vendorCardList{
+  display:flex;
+  gap: 36px;
+  flex-wrap: nowrap;
+  align-items: flex-start;
+}
+.vendorCard{
+  width: 420px;
+  border: 2px solid #00ff66;
+  padding: 18px;
+  background: rgba(0, 255, 102, 0.04);
+}
+.vendorImgWrap {
+  height: 220px;
+  border: 1px solid rgba(0, 255, 102, 0.35);
+  background: rgba(0,0,0,0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.vendorImg { max-width: 90%; max-height: 90%; display: block; }
+
+.vendorName { margin-top: 12px; font-size: 22px; font-weight: 800; }
+.vendorCode { margin-top: 8px; font-size: 13px; opacity: 0.9; }
+.vendorCodeHidden{ display:none; }
+
+.vendorPickRow{ margin-top: 14px; }
+.vendorPickBtn{
+  width: 100%;
+  height: 44px;
+  background: transparent;
+  color: #00ff66; 
+  border: 2px solid rgba(0,255,102,0.75);
+  cursor: pointer;
+  font-size: 16px;
+  letter-spacing: 1px;
+}
+.vendorPickBtn:hover{
+  background: rgba(0,255,102,0.12);
+}
+
+/* =========================================
+   ✅ 左側：遊戲列表
+   ========================================= */
+.gamesDockLeft {
+  width: 420px;
+  padding-right: 12px;
+  border-right: 2px solid rgba(0, 255, 102, 0.35);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.gamesTopBar{ display:flex; align-items:center; justify-content:space-between; margin: 6px 0 12px 0; }
+.gamesTitle { font-size: 16px; font-weight: 900; }
+.backBtn{
+  padding: 10px 14px;
+  background: transparent;
+  color:#00ff66;
+  border: 2px solid rgba(0,255,102,0.75);
+  cursor:pointer;
+}
+.backBtn:hover{ background: rgba(0,255,102,0.12); }
+
+.gamesList { display: flex; flex-direction: column; gap: 12px; }
+.gameRow {
+  border: 2px solid #00ff66;
+  background: rgba(0, 255, 102, 0.03);
+  padding: 12px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.gameRow.active { background: rgba(0, 255, 102, 0.10); }
+
+.gameThumbWrap {
+  width: 92px;
+  height: 92px;
+  border: 1px solid rgba(0, 255, 102, 0.35);
+  background: rgba(0,0,0,0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.gameThumb { max-width: 100%; max-height: 100%; display: block; }
+.gameInfo { flex: 1; }
+.gameName { font-size: 18px; font-weight: 900; margin-bottom: 6px; }
+.gameMeta { font-size: 12px; opacity: 0.85; }
+
+.gamePickBtnSmall{
+  height: 40px;
+  padding: 0 16px;
+  background: transparent;
+  color: #00ff66;
+  border: 2px solid #00ff66;
+  cursor: pointer;
+}
+.gamePickBtnSmall:hover{
+  background: rgba(0,255,102,0.12);
+}
+
+.refreshHint{ margin-top: 12px; font-size: 12px; opacity: 0.75; text-align:center; }
+
+/* =========================================
+   ✅ 右側 Shell
+   ========================================= */
+.rightShell {
+  flex: 1;
+  min-width: 760px;
+  max-width: 1100px;
+  display: flex;
+  flex-direction: column;
+}
+.roomsHeader { text-align: center; margin-top: 6px; margin-bottom: 12px; }
+.roomsTitle { font-size: 18px; font-weight: 700; margin-bottom: 10px; }
+
+.pageBtns{
+  display:flex;
+  justify-content:center;
+  gap: 10px;
+}
+.pageBtn, .pageBtnActive{
+  min-width: 42px;
+  height: 36px;
+  padding: 0 12px;
+  border: 2px solid #00ff66;
+  background: transparent;
+  color: #00ff66;
+  font-weight: 800;
+  cursor: pointer;
+}
+.pageBtn:hover{ background: rgba(0,255,102,0.12); }
+.pageBtnActive{
+  color: #fff;
+  background: rgba(0,255,102,0.18);
+}
+
+/* ✅ 右側紅框滾動區 */
+.rightScroll {
+  border: 2px solid rgba(255, 0, 0, 0.55);
+  padding: 18px;
+  height: calc(100vh - 160px);
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* ===== 選房 grid ===== */
+.roomsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(260px, 1fr));
+  gap: 14px;
+  align-items: start;
+}
+/* ✅ 修正：房卡文字顏色 + 新 class 對應 */
+.room-card{
+  background-color:#000;
+  color:#fff;              /* ⭐ 這行是關鍵：不然會繼承黑色 */
+  height:70px;
+  display:flex;
+  flex-direction:column;   /* 讓房號/中獎率上下排（你現在 JSX 是兩行） */
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  padding:8px 10px;
+  font-size:18px;
+  border:1px solid #666;
+}
+
+/* 房號行 */
+.roomNoRow{ 
+  color:#ffd800;
+  font-weight:800;
+  letter-spacing:0.5px;
+}
+.roomNoPrefix,.roomNoSuffix{ opacity:0.9; font-weight:700; font-size:12px; }
+.roomNoNum{ font-size:12px; }
+
+/* 中獎率行 */
+.roomRateRow{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  font-weight:800;
+  color:#fff;
+}
+.roomRateLabel{ font-size:12px; opacity:0.85; font-weight:700; }
+.roomRateValue{ font-size:16px; }
+
+/* 你的顏色規則維持，但改成也能吃到 roomRateRow */
+.room-card.gray { border-color:#666; }
+.room-card.gray .roomRateRow,
+.room-card.gray .roomRateValue { color:#ff3333; }
+
+.room-card.yellow{
+  border:1px solid #ffd800;
+  box-shadow:0 0 6px rgba(255,216,0,0.75), 0 0 16px rgba(255,216,0,0.45);
+}
+.room-card.yellow .roomRateRow,
+.room-card.yellow .roomRateValue { color:#ffd800; }
+
+.room-card.red{
+  border:1px solid #ff3333;
+  box-shadow:0 0 6px rgba(255,51,51,0.85), 0 0 18px rgba(255,51,51,0.55);
+}
+.room-card.red .roomRateRow,
+.room-card.red .roomRateValue { color:#ff3333; }
+
+@keyframes hotPulse { 0%{transform:scale(1)} 50%{transform:scale(1.06)} 100%{transform:scale(1)} }
+.room-card.redHot{
+  height:78px;
+  border:2px solid #ff0000;
+  box-shadow:0 0 10px rgba(255,0,0,0.95), 0 0 26px rgba(255,0,0,0.70), 0 0 46px rgba(255,0,0,0.35);
+  animation:hotPulse 1.1s ease-in-out infinite;
+}
+.room-card.redHot .roomRateRow,
+.room-card.redHot .roomRateValue { color:#ff0000; }
+
+.room-card-btn{ cursor:pointer; border-radius:0; text-align:left; appearance:none; background:#000; }
+/* ===== Modal（選房用） ===== */
+.modalMask{
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+.modalCard{
+  width: 420px;
+  border: 2px solid #00ff66;
+  background: #000;
+  padding: 18px;
+  box-shadow: 0 0 18px rgba(0,255,102,0.18);
+}
+.modalYellow{ border-color: #ffd800; box-shadow: 0 0 10px rgba(255,216,0,0.85), 0 0 26px rgba(255,216,0,0.55); }
+.modalRed{ border-color: #ff3333; box-shadow: 0 0 12px rgba(255,51,51,0.90), 0 0 30px rgba(255,51,51,0.60); }
+.modalRedHot{ border: 2px solid #ff0000; box-shadow: 0 0 14px rgba(255,0,0,0.98), 0 0 34px rgba(255,0,0,0.70), 0 0 60px rgba(255,0,0,0.35); }
+.modalTitle{ font-size: 22px; font-weight: 900; margin-bottom: 6px; color: #ffd800; }
+.modalSub{ font-size: 16px; font-weight: 800; margin-bottom: 14px; color: #ff3333; }
+.modalLine{ font-size: 18px; font-weight: 900; margin-bottom: 10px; color: #00ff66; }
+.modalBackBtn{
+  margin-top: 10px;
+  width: 100%;
+  padding: 12px;
+  background: transparent;
+  color: #00ff66;
+  border: 2px solid #00ff66;
+  cursor: pointer;
+}
+.modalBackBtn:hover{ background: rgba(0,255,102,0.12); }
+
+button{ outline: none; }
+
+/* ===== Intro styles & Admin theme omitted for brevity in this package ===== */
+
+
+/* =========================================================
+   ✅ 手機/桌機顯示控制
+   ========================================================= */
+.mobileOnly{ display:none; }
+.desktopOnly{ display:block; }
+
+@media (max-width: 900px){
+  .desktopOnly{ display:none !important; }
+  .mobileOnly{ display:block !important; }
+}
+
+/* =========================================================
+   ✅ 背景影片全覆蓋（避免上方黑）
+   ========================================================= */
+.mainVideo{
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  object-fit: cover !important;
+  object-position: center !important;
+  opacity: 0.35 !important;
+  z-index: 0 !important;
+  pointer-events: none !important;
+}
+.main{ background: transparent !important; min-height: 100vh !important; }
+.mainContent{ position: relative !important; z-index: 1 !important; }
+
+/* =========================================================
+   ✅ 手機：頂部三條線 + Drawer（點空白收回）
+   ========================================================= */
+.mobileTopbar{ display:none; }
+
+@media (max-width: 900px){
+  /* ✅ 手機：避免桌機 flex/min-width 把畫面擠到右邊 */
+  .app{
+    flex-direction: column;
+    height: auto !important;
+    min-height: 100vh !important;
+    overflow: hidden !important;
+  }
+  .mainContent{ width:100%; }
+  .rightShell{ min-width:0; width:100%; }
+
+  .mobileTopbar{
+    display:flex !important;
+    align-items:center;
+    justify-content:space-between;
+    gap: 10px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 20000;
+    padding: 10px 12px;
+    background: rgba(0,0,0,0.55);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid rgba(0,255,102,0.25);
+  }
+
+  .mobileTopLeft{ display:flex; align-items:center; gap:10px; min-width:0; }
+  .topBackBtn{
+    height: 36px;
+    padding: 0 12px;
+    border-radius: 10px;
+    border: 2px solid #00ff66;
+    background: transparent;
+    color: #00ff66;
+    font-weight: 900;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+  }
+  .hamburgerBtn{
+    width: 44px;
+    height: 44px;
+    border: 2px solid #00ff66;
+    background: transparent;
+    color: #00ff66;
+    font-size: 26px;
+    line-height: 40px;
+    cursor: pointer;
+  }
+  .mobileTopTitle{
+    color:#00ff66;
+    font-weight: 900;
+    letter-spacing: 1px;
+  }
+  .main{ padding-top: 64px !important; }
+
+  .mobileDrawerMask{
+    position: fixed;
+    inset: 0;
+    z-index: 25000;
+    background: rgba(0,0,0,0.55);
+  }
+  .mobileDrawer{
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: min(320px, 86vw);
+    height: 100%;
+    background: rgba(0,0,0,0.92);
+    border-right: 2px solid #00ff66;
+    box-shadow: 0 0 30px rgba(0,255,102,0.18);
+    padding: 14px;
+    overflow: auto;
+  }
+  .mobileDrawerHeader{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(0,255,102,0.25);
+    margin-bottom: 12px;
+  }
+  .mobileDrawerTitle{
+    color:#00ff66;
+    font-weight: 900;
+    letter-spacing: 1px;
+  }
+  .mobileDrawerClose{
+    width: 42px;
+    height: 42px;
+    border: 2px solid rgba(0,255,102,0.75);
+    background: transparent;
+    color:#00ff66;
+    font-size: 26px;
+    line-height: 36px;
+    cursor:pointer;
+  }
+}
+
+/* =========================================================
+   ✅ 手機：系統/遊戲類別 置中 + 幾乎貼合（menuVendorPick）
+   ========================================================= */
+@media (max-width: 900px){
+  .mControls{
+    width: 100%;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: stretch !important;
+    gap: 0 !important;               /* ✅ 不要縫 */
+    margin: 10px 0 10px !important;
+    padding: 0 10px;
+  }
+
+  .mControlBox{
+    width: min(220px, 44vw) !important;
+    border: 2px solid #00ff66 !important;
+    background: rgba(0,255,102,0.04) !important;
+    padding: 14px 12px !important;
+  }
+
+  /* ✅ 讓兩個框邊框貼起來 */
+  .mControlBox.gameBox{
+    margin-left: -2px !important;
+  }
+
+  .mControlLabel{
+    font-weight: 900 !important;
+    margin-bottom: 10px !important;
+  }
+
+  .mSelect{
+    width: 100% !important;
+    height: 44px !important;
+    background: #000 !important;
+    color: #00ff66 !important;
+    border: 2px solid rgba(0,255,102,0.75) !important;
+    font-size: 16px !important;
+    padding: 0 10px !important;
+    outline: none !important;
+  }
+
+  .mEnterRow{
+    width: 100%;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap: 10px;
+    margin-top: 6px;
+  }
+  .mCodeCenter{ text-align:center !important; }
+  .vendorPickBtn{ width: min(420px, 92vw) !important; }
+}
+
+/* =========================================================
+   ✅ Drawer 內的使用者資訊框（手機最下方獨立框感）
+   ========================================================= */
+.userBoxMobile{
+  margin-top: 16px;
+  padding: 12px 10px;
+  border: 2px solid rgba(0,255,102,0.35);
+  background: rgba(0,255,102,0.04);
+}
+.userLine{
+  font-size: 12px;
+  opacity: 0.90;
+  margin-top: 6px;
+}
+.userLine:first-child{ margin-top: 0; }
+.userWarn{
+  margin-top: 8px;
+  color: #ffb4b4;
+  font-size: 12px;
+}
+.userContinueBtn{
+  margin-top: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 2px solid rgba(0,255,102,0.55);
+  background: rgba(0,255,102,0.10);
+  color: #00ff66;
+  cursor: pointer;
+  font-size: 13px;
+}
+.userContinueBtn:hover{ background: rgba(0,255,102,0.16); }
+
+/* =========================================================
+   ✅ 手機：房間 grid 固定 3 欄（你要的一行三個）
+   ========================================================= */
+@media (max-width: 900px){
+  .rightShell{ min-width: 0 !important; max-width: none !important; width: 100% !important; }
+  .rightScroll{ height: calc(100vh - 210px) !important; }
+  .roomsGrid{ grid-template-columns: repeat(3, minmax(0, 1fr)) !important; gap: 10px !important; }
+  .room-card{ height: 92px !important; font-size: 16px !important; padding: 12px 8px !important; }
+  .room-id{ font-size: 14px !important; }
+  .room-rate{ font-size: 12px !important; }
+}
+
+/* =========================
+ * Mobile: 置中 + 3欄房間 + 好看排版
+ * ========================= */
+@media (max-width: 560px) {
+  /* 主內容不要貼左 */
+  .mainContent {
+    width: 100%;
+  }
+
+  /* 進入頁（系統/遊戲 下拉）整塊置中 */
+  .mControls {
+    width: min(520px, 94vw);
+    margin: 12px auto 10px auto;
+  }
+  .mEnterRow {
+    width: min(520px, 94vw);
+    margin: 8px auto 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+  .mCodeCenter {
+    text-align: center;
+    width: 100%;
+  }
+  .vendorPickBtn {
+    width: 100%;
+  }
+
+  /* rooms 右側容器置中 */
+  .rightShell {
+    width: min(520px, 96vw);
+    margin: 0 auto;
+  }
+
+  /* header 置中 */
+  .roomsHeader {
+    width: 100%;
+  }
+  .roomsTitle {
+    text-align: center;
+  }
+
+  /* 分頁按鈕置中 */
+  .pageBtns {
+    justify-content: center;
+  }
+
+  /* 房間：一行三個 */
+  .roomsGrid {
+    width: 100%;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  /* 房間卡：更像你圖上的整齊排版 */
+  .room-card-btn {
+    padding: 10px 8px;
+    min-height: 82px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  }
+
+  /* 房號一行不要拆 */
+  .room-id {
+    display: block;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    white-space: nowrap;      /* ✅ 防止「第 / 001 / 台」被拆 */
+    line-height: 1.1;
+    margin-bottom: 6px;
+  }
+
+  /* 中獎率固定第二行 */
+  .room-rate {
+    display: block;
+    font-weight: 700;
+    white-space: nowrap;
+    line-height: 1.1;
+  }
+}
+
+/* =========================
+ * Admin (科技風) Theme
+ * ========================= */
+:root{
+  --bg0:#06070b;
+  --bg1:#0b1020;
+  --card:rgba(255,255,255,.06);
+  --card2:rgba(255,255,255,.08);
+  --stroke:rgba(255,255,255,.14);
+  --stroke2:rgba(255,255,255,.22);
+  --text:#e9ecff;
+  --muted:rgba(233,236,255,.62);
+  --muted2:rgba(233,236,255,.42);
+  --glow1:rgba(96,165,250,.55); /* blue */
+  --glow2:rgba(167,139,250,.55); /* purple */
+  --glow3:rgba(52,211,153,.35);  /* green */
+}
+
+.adminRoot{
+  min-height:100vh;
+  color:var(--text);
+  background:
+    radial-gradient(900px 500px at 20% 10%, rgba(96,165,250,.18), transparent 60%),
+    radial-gradient(800px 500px at 85% 20%, rgba(167,139,250,.16), transparent 60%),
+    radial-gradient(900px 600px at 70% 90%, rgba(52,211,153,.10), transparent 60%),
+    linear-gradient(180deg, var(--bg0), var(--bg1));
+  position:relative;
+  overflow:hidden;
+}
+
+.adminRoot::before{
+  content:"";
+  position:absolute; inset:-2px;
+  background-image:
+    linear-gradient(rgba(255,255,255,.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.06) 1px, transparent 1px);
+  background-size: 42px 42px;
+  opacity:.35;
+  pointer-events:none;
+  mask-image: radial-gradient(circle at 40% 20%, rgba(0,0,0,1), rgba(0,0,0,.35) 55%, transparent 85%);
+}
+
+.adminShell{
+  position:relative;
+  display:grid;
+  grid-template-columns: 280px 1fr;
+  gap: 18px;
+  padding: 18px;
+}
+
+.adminSidebar{
+  border:1px solid var(--stroke);
+  background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.04));
+  border-radius: 18px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 20px 60px rgba(0,0,0,.35);
+  overflow:hidden;
+}
+
+.adminBrand{
+  padding:16px 16px 10px;
+  border-bottom:1px solid rgba(255,255,255,.10);
+}
+.adminBrandTitle{
+  font-size:14px;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  opacity:.9;
+}
+.adminBrandSub{
+  margin-top:6px;
+  font-size:12px;
+  color:var(--muted);
+}
+
+.adminNav{
+  padding: 10px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+.adminNavBtn{
+  width:100%;
+  padding:12px 12px;
+  border-radius: 14px;
+  border:1px solid rgba(255,255,255,.10);
+  background: rgba(255,255,255,.04);
+  color: var(--text);
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  transition: .18s ease;
+}
+.adminNavBtn:hover{
+  border-color: rgba(255,255,255,.22);
+  background: rgba(255,255,255,.06);
+  box-shadow: 0 0 0 1px rgba(96,165,250,.12), 0 12px 30px rgba(0,0,0,.28);
+}
+.adminNavBtn.active{
+  border-color: rgba(96,165,250,.38);
+  box-shadow: 0 0 0 1px rgba(96,165,250,.25), 0 0 28px rgba(96,165,250,.10);
+}
+.adminNavHint{
+  font-size:12px;
+  color: var(--muted2);
+}
+
+.adminMain{
+  border:1px solid var(--stroke);
+  background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.04));
+  border-radius: 18px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 20px 60px rgba(0,0,0,.35);
+  overflow:hidden;
+}
+
+.adminTopbar{
+  padding: 14px 16px;
+  border-bottom:1px solid rgba(255,255,255,.10);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+.adminTitle{
+  font-size:16px;
+  font-weight:700;
+  letter-spacing:.02em;
+}
+.adminMeta{
+  font-size:12px;
+  color:var(--muted);
+}
+
+.adminContent{
+  padding: 16px;
+}
+
+.adminCard{
+  border:1px solid rgba(255,255,255,.10);
+  background: rgba(255,255,255,.04);
+  border-radius: 16px;
+  padding: 14px;
+}
+.adminCard + .adminCard{ margin-top: 14px; }
+
+.adminRow{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.adminRow3{
+  display:grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+}
+.adminLabel{
+  font-size:12px;
+  color: var(--muted);
+  margin-bottom:6px;
+}
+.adminInput, .adminSelect{
+  width:100%;
+  padding: 11px 12px;
+  border-radius: 14px;
+  border:1px solid rgba(255,255,255,.12);
+  background: rgba(0,0,0,.22);
+  color: var(--text);
+  outline:none;
+}
+.adminInput:focus, .adminSelect:focus{
+  border-color: rgba(96,165,250,.42);
+  box-shadow: 0 0 0 3px rgba(96,165,250,.14);
+}
+
+.adminBtn{
+  padding: 11px 14px;
+  border-radius: 14px;
+  border:1px solid rgba(96,165,250,.40);
+  background: linear-gradient(180deg, rgba(96,165,250,.22), rgba(96,165,250,.10));
+  color: var(--text);
+  cursor:pointer;
+  transition:.18s ease;
+}
+.adminBtn:hover{
+  box-shadow: 0 0 26px rgba(96,165,250,.16);
+  transform: translateY(-1px);
+}
+.adminBtn.secondary{
+  border-color: rgba(255,255,255,.16);
+  background: rgba(255,255,255,.06);
+}
+
+.adminTableWrap{
+  border:1px solid rgba(255,255,255,.10);
+  background: rgba(0,0,0,.18);
+  border-radius: 16px;
+  overflow:hidden;
+}
+.adminTable{
+  width:100%;
+  border-collapse: collapse;
+  font-size:13px;
+}
+.adminTable th{
+  text-align:left;
+  font-size:12px;
+  color: var(--muted);
+  padding: 12px;
+  background: rgba(255,255,255,.04);
+  position: sticky;
+  top: 0;
+  backdrop-filter: blur(10px);
+}
+.adminTable td{
+  padding: 12px;
+  border-top:1px solid rgba(255,255,255,.08);
+  color: var(--text);
+}
+.adminTable tr:hover td{
+  background: rgba(255,255,255,.03);
+}
+
+/* Login page */
+.adminLoginShell{
+  min-height:100vh;
+  display:grid;
+  place-items:center;
+  padding: 18px;
+}
+.adminLoginCard{
+  width:min(460px, 92vw);
+  border:1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.06);
+  border-radius: 18px;
+  padding: 18px;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 30px 80px rgba(0,0,0,.45);
+}
+.adminLoginTitle{
+  font-size:18px;
+  font-weight:800;
+}
+.adminLoginSub{
+  margin-top:6px;
+  color: var(--muted);
+  font-size:12px;
+}
+.adminLoginActions{
+  display:flex;
+  gap:10px;
+  margin-top: 14px;
+}
+
+/* =========================
+ * Admin Neon UI (Login + Panel)
+ * ========================= */
+.adminRoot{
+  min-height:100vh;
+  background:
+    radial-gradient(1200px 700px at 15% 15%, rgba(95,130,255,.22), transparent 55%),
+    radial-gradient(900px 600px at 80% 20%, rgba(64,255,207,.14), transparent 60%),
+    radial-gradient(900px 650px at 60% 90%, rgba(255,120,210,.12), transparent 55%),
+    linear-gradient(180deg, #070914 0%, #050712 100%);
+  color:#fff;
+  display:flex;
+  align-items:stretch;
+  justify-content:center;
+}
+
+.adminShell{
+  width:min(1220px, calc(100% - 36px));
+  margin:18px 0;
+  display:grid;
+  grid-template-columns: 280px 1fr;
+  gap:14px;
+}
+
+.adminSidebar{
+  border-radius:18px;
+  border:1px solid rgba(255,255,255,.10);
+  background: rgba(10,12,26,.55);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 18px 60px rgba(0,0,0,.45);
+  padding:14px;
+  position:sticky;
+  top:18px;
+  height: calc(100vh - 36px);
+  overflow:auto;
+}
+
+.adminBrand{
+  padding:12px 12px 14px 12px;
+  border-radius:16px;
+  border:1px solid rgba(255,255,255,.10);
+  background: rgba(0,0,0,.18);
+}
+.adminBrandTitle{
+  font-weight: 1000;
+  letter-spacing: .18em;
+  font-size: 14px;
+}
+.adminBrandSub{
+  margin-top:8px;
+  font-size:12px;
+  color: rgba(233,236,255,.62);
+}
+
+.adminNav{
+  margin-top:12px;
+  display:grid;
+  gap:10px;
+}
+
+.adminNavBtn{
+  width:100%;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,.10);
+  background: rgba(0,0,0,.18);
+  color:#fff;
+  padding:12px 12px;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  transition: transform .08s ease, border-color .12s ease, background .12s ease;
+}
+.adminNavBtn:hover{
+  transform: translateY(-1px);
+  border-color: rgba(140,165,255,.35);
+  background: rgba(20,30,70,.22);
+}
+.adminNavBtn.active{
+  border-color: rgba(140,165,255,.55);
+  background: linear-gradient(180deg, rgba(90,120,255,.28), rgba(0,0,0,.18));
+}
+
+/* =========================
+ * Admin Neon UI (FULLSCREEN + small margin)
+ * ========================= */
+
+/* 讓整個後台貼齊視窗、但留一圈小邊距 */
+.adminRoot{
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;           /* ✅ 不要出現整頁滾動條 */
+  padding: 14px;              /* ✅ 這就是你截圖那圈小邊距 */
+  box-sizing: border-box;
+
+  background:
+    radial-gradient(1200px 700px at 15% 15%, rgba(95,130,255,.22), transparent 55%),
+    radial-gradient(900px 600px at 80% 20%, rgba(64,255,207,.14), transparent 60%),
+    radial-gradient(900px 650px at 60% 90%, rgba(255,120,210,.12), transparent 55%),
+    linear-gradient(180deg, #070914 0%, #050712 100%);
+  color:#fff;
+  display:flex;
+  align-items: stretch;
+  justify-content: center;
+}
+
+/* ✅ 兩欄容器：滿屏高度、吃滿寬度，只留 padding 的邊距 */
+.adminShell{
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-columns: 300px 1fr; /* 你可以改 280/320 看喜好 */
+  gap: 14px;
+  min-width: 0;  /* ✅ 避免 grid 子項撐爆 */
+}
+
+/* ✅ 左側欄：滿高、內部自己滾動 */
+.adminSidebar{
+  height: 100%;
+  overflow: auto;
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,.10);
+  background: rgba(10,12,26,.55);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 18px 60px rgba(0,0,0,.45);
+  padding: 14px;
+}
+
+/* ✅ 右側主內容：滿高、內部自己滾動 */
+.adminMain{
+  height: 100%;
+  overflow: auto;
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,.10);
+  background: rgba(10,12,26,.42);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 18px 60px rgba(0,0,0,.35);
+  padding: 14px;
+  min-width: 0;
+}
+
+/* 標題區（可選） */
+.adminTopbar{
+  display:flex;
+  align-items:center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,.10);
+  background: rgba(0,0,0,.16);
+}
+
+/* 卡片樣式（右側區塊用） */
+.adminCard{
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,.10);
+  background: rgba(0,0,0,.16);
+  padding: 14px;
+}
+
+/* 按鈕、輸入統一科技感 */
+.adminBtn{
+  border-radius: 14px;
+  border: 1px solid rgba(140,165,255,.35);
+  background: linear-gradient(180deg, rgba(90,120,255,.26), rgba(0,0,0,.18));
+  color:#fff;
+  padding: 10px 12px;
+  cursor:pointer;
+  transition: transform .08s ease, border-color .12s ease, background .12s ease;
+}
+.adminBtn:hover{
+  transform: translateY(-1px);
+  border-color: rgba(140,165,255,.60);
+  background: linear-gradient(180deg, rgba(90,120,255,.34), rgba(0,0,0,.18));
+}
+.adminBtn.disabled{
+  opacity:.45;
+  cursor:not-allowed;
+  transform:none;
+}
+
+.adminInput, .adminSelect{
+  width: 100%;
+  box-sizing: border-box;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(0,0,0,.22);
+  color: #fff;
+  padding: 10px 12px;
+  outline: none;
+}
+.adminInput:focus, .adminSelect:focus{
+  border-color: rgba(140,165,255,.55);
+  box-shadow: 0 0 0 3px rgba(90,120,255,.18);
+}
+
+.adminLabel{
+  font-size: 12px;
+  color: rgba(233,236,255,.68);
+  margin: 0 0 6px 2px;
+}
+
+/* ✅ RWD：窄螢幕改上下排列 */
+@media (max-width: 980px){
+  .adminRoot{ padding: 10px; }
+  .adminShell{
+    grid-template-columns: 1fr;
+    grid-template-rows: 240px 1fr;
+  }
+}
+
+/* =========================================================
+   Mobile layout fixes (v3)
+   - Fix "not centered" caused by desktop sidebar offsets
+   - Add topbar right back button
+   - Make rooms grid 3-per-row + prettier typography
+   ========================================================= */
+
+@media (max-width: 820px) {
+  /* ✅ 確保手機不會被桌機 sidebar 的 layout 影響置中 */
+  .app {
+    display: block !important;
+  }
+  .mainContent {
+    width: 100% !important;
+    margin-left: 0 !important;
+    padding-left: 0 !important;
+  }
+
+  /* Topbar */
+  .mobileTopbar {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 12px;
+    background: rgba(0,0,0,0.55);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid rgba(0,255,140,0.35);
+  }
+  .mobileTopTitle{
+    flex: 1;
+    text-align: left;
+    padding-left: 6px;
+    font-size: 14px;
+    letter-spacing: 0.5px;
+    color: #00ff8c;
+  }
+  .mobileTopBackBtn{
+    border: 1px solid rgba(0,255,140,0.75);
+    color: #00ff8c;
+    background: rgba(0,0,0,0.25);
+    border-radius: 10px;
+    padding: 8px 10px;
+    font-size: 12px;
+    line-height: 1;
+  }
+  .mobileTopRightSpacer{ width: 56px; }
+
+  /* ✅ 手機置中容器 */
+  .mobileCenterWrap{
+    width: min(640px, 92vw);
+    margin: 0 auto;
+    padding-top: 10px;
+  }
+
+  /* ✅ rooms 右側容器置中（避免整塊偏右/偏左） */
+  .mobileRoomsWrap{
+    width: min(640px, 92vw);
+    margin: 0 auto;
+  }
+
+  /* ✅ rooms grid 一行 3 個 */
+  .roomsGrid.roomsGrid3{
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+  }
+
+  /* ✅ 房間卡排版 */
+  .room-card-btn{
+    min-height: 88px;
+    padding: 10px 8px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  }
+  .roomNoRow{
+    display: flex;
+    align-items: baseline;
+    gap: 2px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+  }
+  .roomNoPrefix, .roomNoSuffix{
+    font-size: 14px;
+    opacity: 0.95;
+  }
+  .roomNoNum{
+    font-size: 22px;
+    line-height: 1;
+  }
+  .roomRateRow{
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    font-size: 12px;
+    opacity: 0.95;
+    letter-spacing: 0.4px;
+    white-space: nowrap;
+  }
+  .roomRateLabel{ opacity: 0.9; }
+  .roomRateValue{ font-weight: 800; }
+}
+
+/* =========================================================
+   ✅ Mobile (FINAL) — 置中不歪、選單/選房都穩
+   ========================================================= */
+@media (max-width: 900px) {
+  /* 手機不要用桌機的 app flex 兩欄 */
+  .app{
+    display: block !important;
+    width: 100% !important;
+    min-height: 100vh !important;
+    overflow-x: hidden !important;
+  }
+
+  /* main 不要左右大 padding，避免「視覺歪」 */
+  .main{
+    padding: 64px 0 18px 0 !important; /* 上方給 topbar */
+    min-height: 100vh !important;
+    background: transparent !important;
+  }
+
+  /* ✅ 關鍵：mainContent 不要 flex（flex 會從左開始排） */
+  .mainContent{
+    display: block !important;
+    width: 100% !important;
+    margin: 0 auto !important;
+  }
+
+  /* 置中容器：選系統頁 */
+  .mobileCenterWrap{
+    width: min(640px, 92vw);
+    margin: 0 auto;
+    padding-top: 10px;
+  }
+
+  /* 置中容器：選房頁（右側） */
+  .mobileRoomsWrap{
+    width: min(640px, 92vw);
+    margin: 0 auto;
+  }
+
+  /* 系統/遊戲：兩框置中貼合 */
+  .mControls{
+    width: 100% !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: stretch !important;
+    gap: 0 !important;
+    margin: 10px 0 10px !important;
+    padding: 0 !important;
+  }
+  .mControlBox{
+    width: min(260px, 46vw) !important;
+    border: 2px solid #00ff66 !important;
+    background: rgba(0,255,102,0.04) !important;
+    padding: 14px 12px !important;
+  }
+  .mControlBox.gameBox{
+    margin-left: -2px !important; /* 邊框貼齊 */
+  }
+
+  .mEnterRow{
+    width: 100%;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap: 10px;
+    margin-top: 6px;
+  }
+  .vendorPickBtn{
+    width: 100% !important;
+    max-width: 520px;
+  }
+
+  /* rooms 容器不要被桌機 min-width 撐爆 */
+  .rightShell{
+    min-width: 0 !important;
+    max-width: none !important;
+    width: min(640px, 92vw) !important;
+    margin: 0 auto !important;
+  }
+  .rightScroll{
+    height: calc(100vh - 210px) !important;
+  }
+
+  /* ✅ 房間一行三個 */
+  .roomsGrid{
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+  }
+
+  /* ✅ 房間卡：直向置中、字體更順 */
+  .room-card-btn{
+    min-height: 88px !important;
+    padding: 10px 8px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: center !important;
+    text-align: center !important;
+  }
+
+  /* ✅ 房號：第 001 台（同一行、數字放大） */
+  .roomNoRow{
+    display:flex;
+    align-items: baseline;
+    gap: 2px;
+    margin-bottom: 6px;
+    white-space: nowrap;
+    letter-spacing: .5px;
+    font-weight: 900;
+  }
+  .roomNoPrefix, .roomNoSuffix{ font-size: 13px; opacity: .95; }
+  .roomNoNum{ font-size: 22px; line-height: 1; }
+
+  /* ✅ 中獎率：第二行 */
+  .roomRateRow{
+    display:flex;
+    align-items: baseline;
+    gap: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    letter-spacing: .4px;
+    opacity: .95;
+  }
+  .roomRateValue{ font-weight: 900; }
+}
+
+/* =========================
+   只改字體 + 大小（不改顏色/邊框/排版）
+========================= */
+
+/* 全站字體：乾淨、像控制台 */
+:root{
+  --ui-font: ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+             "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", Arial, sans-serif;
+}
+
+.room-card,
+.room-card *{
+  font-family: var(--ui-font);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: geometricPrecision;
+}
+
+/* 卡片內文字的基準 */
+.room-card{
+  font-size: 12px;      /* ✅ 全部基準縮小 */
+  line-height: 1.15;
+  letter-spacing: .2px;
+}
+
+/* ===== 房號（主） ===== */
+.roomNoRow{
+  font-size: 14px;      /* ✅ 001台 主行大小 */
+  font-weight: 800;     /* ✅ 不要 900 太粗 */
+  letter-spacing: .8px; /* ✅ 有質感 */
+  line-height: 1.05;
+}
+.roomNoNum{
+  font-size: 16px;      /* ✅ 001 數字略大一點 */
+  font-weight: 900;
+  letter-spacing: 1px;
+}
+.roomNoPrefix,
+.roomNoSuffix{
+  font-size: 10px;      /* ✅ 第/台 小一階 */
+  font-weight: 700;
+  letter-spacing: .6px;
+}
+
+/* ===== 中獎率（副） ===== */
+.roomRateRow{
+  font-size: 10.5px;    /* ✅ 下面那行要更小 */
+  font-weight: 650;     /* ✅ 不要太粗 */
+  letter-spacing: .3px;
+  line-height: 1.05;
+}
+.roomRateLabel{
+  font-size: 10px;      /* ✅ 文案小一點 */
+  font-weight: 600;
+  letter-spacing: .2px;
+}
+.roomRateValue{
+  font-size: 12px;      /* ✅ 72% 這個要凸顯 */
+  font-weight: 850;
+  letter-spacing: .6px;
+}
+
+/* =========================
+   Desktop vs Mobile：電腦左右 / 手機上下
+   （只影響房卡文字與排列）
+========================= */
+
+:root{
+  --ui-font: ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+             "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", Arial, sans-serif;
+}
+
+.room-card,
+.room-card *{
+  font-family: var(--ui-font);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: geometricPrecision;
+}
+
+/* ---------- 手機：上下 ---------- */
+.mobileOnly .room-card{
+  display:flex;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 4px !important;
+  padding: 8px !important;
+
+  font-size: 12px;
+  line-height: 1.12;
+  letter-spacing: .2px;
+}
+
+.mobileOnly .roomNoRow{ font-size: 14px; font-weight: 800; letter-spacing: .8px; line-height: 1.05; }
+.mobileOnly .roomNoNum{ font-size: 16px; font-weight: 900; letter-spacing: 1px; }
+.mobileOnly .roomNoPrefix,.mobileOnly .roomNoSuffix{ font-size: 10px; font-weight: 700; opacity: .7; }
+.mobileOnly .roomRateRow{ font-size: 10.5px; font-weight: 650; letter-spacing: .3px; white-space: nowrap; }
+.mobileOnly .roomRateLabel{ font-size: 10px; font-weight: 600; opacity: .75; }
+.mobileOnly .roomRateValue{ font-size: 12px; font-weight: 850; letter-spacing: .6px; }
+
+/* ---------- 電腦：左右（重點在這裡） ---------- */
+.desktopOnly .room-card{
+  display:flex;
+  flex-direction: row !important;           /* ⭐ 強制左右 */
+  align-items: center !important;
+  justify-content: space-between !important;/* ⭐ 左右貼齊 */
+  gap: 14px !important;
+  padding: 0 18px !important;
+
+  font-size: 14px;
+  line-height: 1.1;
+  letter-spacing: .2px;
+}
+
+/* 左側：房號固定靠左，不換行 */
+.desktopOnly .roomNoRow{
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 2px;
+  white-space: nowrap;
+
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: .8px;
+  line-height: 1.05;
+}
+.desktopOnly .roomNoNum{ font-size: 20px; font-weight: 900; }
+.desktopOnly .roomNoPrefix,.desktopOnly .roomNoSuffix{ font-size: 12px; font-weight: 700; opacity: .75; }
+
+/* 右側：中獎率固定靠右，不換行 */
+.desktopOnly .roomRateRow{
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  white-space: nowrap;
+  margin-left: auto;                         /* ⭐ 推到最右 */
+
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: .3px;
+  line-height: 1.05;
+}
+.desktopOnly .roomRateLabel{ font-size: 12px; font-weight: 700; opacity: .75; }
+.desktopOnly .roomRateValue{ font-size: 16px; font-weight: 900; }
+
+/* =========================
+   桌機 rooms：全部文字同大小版本
+   (第XXX台 = 大獎中獎率 同字級)
+========================= */
+
+.desktopOnly .room-card{
+  display:flex;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 0 18px !important;
+}
+
+/* 左右區塊統一字體 */
+.desktopOnly .roomNoRow,
+.desktopOnly .roomRateRow{
+  display:flex;
+  align-items:center;
+  gap:4px;
+  white-space:nowrap;
+
+  font-size:15px !important;   /* ⭐ 全部統一大小 */
+  font-weight:700 !important;
+  letter-spacing:.4px;
+}
+
+/* 不再放大數字 */
+.desktopOnly .roomNoNum,
+.desktopOnly .roomRateValue,
+.desktopOnly .roomRateLabel,
+.desktopOnly .roomNoPrefix,
+.desktopOnly .roomNoSuffix{
+  font-size:18px !important;
+  font-weight:700 !important;
+}
+
+/* 右側靠右 */
+.desktopOnly .roomRateRow{
+  margin-left:auto;
+}
+
+/* ================================
+   📱 手機版 rooms 字體統一
+   只影響手機，不動桌機
+================================ */
+
+@media (max-width: 768px) {
+
+  /* 房卡整體字級 */
+  .room-card {
+    font-size: 14px !important;
+  }
+
+  /* 第XXX台 */
+  .roomNoRow,
+  .roomNoPrefix,
+  .roomNoNum,
+  .roomNoSuffix {
+    font-size: 18px !important;
+    font-weight: 600;
+    letter-spacing: 1px;
+  }
+
+  /* 大獎中獎率 */
+  .roomRateLabel {
+    font-size: 11.5px !important;
+    font-weight: 500;
+  }
+
+  /* 百分比 */
+  .roomRateValue {
+    font-size: 14px !important;
+    font-weight: 600;
+  }
+
+}
+
+@media (max-width: 768px) {
+
+  .modalCard {
+    width: 80%;
+    max-width: 320px;
+    padding: 16px 16px;
+  }
+
+}
+
+@media (max-width: 768px) {
+
+  .modalTitle {
+    font-size: 16px;
+  }
+
+  .modalSub,
+  .modalLine {
+    font-size: 14px;
+  }
+
+}
+
+/* =========================
+   選房：被點擊的房間光暈（依顏色加強）
+========================= */
+
+/* 通用：被選到就微微抬起 + 更亮 */
+.room-card.selected{
+  transform: translateY(-1px);
+  filter: brightness(1.06);
+}
+
+/* ✅ 黃框房：黃光暈加強 */
+.room-card.selected.yellow{
+  box-shadow:
+    0 0 10px rgba(255,216,0,0.85),
+    0 0 26px rgba(255,216,0,0.55),
+    0 0 46px rgba(255,216,0,0.25);
+}
+
+/* ✅ 紅框房：紅光暈加強 */
+.room-card.selected.red{
+  box-shadow:
+    0 0 10px rgba(255,51,51,0.90),
+    0 0 28px rgba(255,51,51,0.60),
+    0 0 52px rgba(255,51,51,0.28);
+}
+
+/* ✅ redHot：保持你原本動畫，再多一層更亮的外暈 */
+.room-card.selected.redHot{
+  box-shadow:
+    0 0 14px rgba(255,0,0,0.95),
+    0 0 34px rgba(255,0,0,0.75),
+    0 0 60px rgba(255,0,0,0.35);
+}
+
+/* 灰色房（locked）就不要光暈 */
+.room-card.gray.selected{
+  transform: none;
+  filter: none;
+  box-shadow: none;
+}
+
+/* ===== modal 依房間顏色顯示光暈 ===== */
+.modalCard.yellow{
+  box-shadow: 0 0 16px rgba(255,216,0,0.75), 0 0 42px rgba(255,216,0,0.35);
+  border-color: #ffd800;
+}
+.modalCard.red{
+  box-shadow: 0 0 16px rgba(255,51,51,0.75), 0 0 42px rgba(255,51,51,0.35);
+  border-color: #ff3333;
+}
+.modalCard.redHot{
+  box-shadow: 0 0 18px rgba(255,0,0,0.85), 0 0 54px rgba(255,0,0,0.40);
+  border-color: #ff0000;
+}
+
+/* =========================
+   ADMIN 手機排版專用
+   不影響桌機
+========================= */
+@media (max-width: 820px) {
+
+  /* 1️⃣ 左右改成上下 */
+  .adminShell {
+    grid-template-columns: 1fr !important;
+    grid-template-rows: auto 1fr !important;
+    gap: 14px;
+  }
+
+  /* 2️⃣ 側邊欄縮小 */
+  .adminSidebar {
+    padding: 14px !important;
+  }
+
+  /* 3️⃣ 使用者/單房覆蓋按鈕 → 兩欄 */
+  .adminNav {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 10px !important;
+  }
+
+  .adminNavBtn {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+
+  /* 4️⃣ 主內容改上下排列（避免左右擠爆） */
+  .adminRow,
+  .adminRow2,
+  .adminRow3 {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* 5️⃣ 表單按鈕全寬 */
+  .adminBtn {
+    width: 100% !important;
+  }
+
+}
+
+/* =========================
+   ADMIN 手機：字體/間距/按鈕整齊
+   ✅ 不影響桌機
+========================= */
+@media (max-width: 820px) {
+
+  /* 文字整體縮一點、行距更緊湊 */
+  .adminSidebar,
+  .adminMain {
+    font-size: 13px !important;
+    line-height: 1.35 !important;
+  }
+
+  .adminBrandTitle { font-size: 14px !important; }
+  .adminBrandSub   { font-size: 12px !important; opacity: .85 !important; }
+
+  .adminSectionTitle { font-size: 14px !important; }
+  .adminSectionSub   { font-size: 12px !important; opacity: .8 !important; }
+
+  /* ✅ 上面那排按鈕：統一高度、字體、間距 */
+  .adminNav {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 10px !important;
+    align-items: stretch !important;
+  }
+
+  .adminNavBtn,
+  .adminBtn,
+  .adminLogoutBtn {
+    height: 42px !important;
+    font-size: 13px !important;
+    border-radius: 14px !important;
+    padding: 0 12px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    white-space: nowrap !important;
+  }
+
+  /* ✅ 你說「登出後台怪怪的」：讓它跟上面同一個網格 */
+  .adminSidebarActions {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 10px !important;
+  }
+
+  /* 如果你登出後台那顆其實是 .adminLogoutBtn（或 .adminBtn），讓它變成佔滿一整列 */
+  .adminLogoutBtn {
+    grid-column: 1 / -1 !important; /* ✅ 直接滿版，視覺最整齊 */
+  }
+
+  /* 表單 input 與 label 更緊湊 */
+  .adminForm label { font-size: 12px !important; opacity: .85 !important; }
+  .adminForm input {
+    height: 40px !important;
+    font-size: 13px !important;
+    border-radius: 12px !important;
+  }
+
+  /* 內容區 padding 微調（更像你要的「乾淨」） */
+  .adminContent { padding: 12px !important; }
+}
+
+/* =========================
+ * Admin - Mobile only layout
+ * ========================= */
+@media (max-width: 860px) {
+  /* 讓左側 sidebar 在手機變成「上方卡 + 四格快捷」 */
+  .adminShell {
+    grid-template-columns: 1fr !important;
+  }
+
+  .adminSidebar {
+    position: relative;
+    width: 100%;
+  }
+
+  /* ✅ 手機顯示四格，桌機那串隱藏 */
+  .adminQuickGrid { display: grid; }
+  .adminNavStack { display: none; }
+
+  /* 四格：2x2 對齊 */
+  .adminQuickGrid {
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 10px;
+  }
+
+  /* 讓四格按鈕高度一致、字級一致 */
+  .adminQuickGrid .adminNavBtn,
+  .adminQuickGrid .adminBtn {
+    height: 44px;
+    padding: 0 14px;
+    font-size: 14px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  /* 右上登出後台：對齊感更像格子 */
+  .adminQuickLogout,
+  .adminQuickReload {
+    justify-content: center !important;
+    gap: 8px;
+  }
+
+  /* 品牌區字體微調 */
+  .adminBrandTitle { font-size: 18px; letter-spacing: 1px; }
+  .adminBrandSub { font-size: 12px; opacity: .75; }
+
+  /* 手機提示訊息 */
+  .adminMsgMobile{
+    margin-top: 10px;
+    font-size: 12px;
+    color: rgba(233,236,255,.85);
+  }
+
+  /* 主內容區：padding 小一點 */
+  .adminMain { padding-top: 10px; }
+  .adminTopbar .adminTitle { font-size: 16px; }
+  .adminTopbar .adminMeta { font-size: 12px; }
+
+  /* 輸入區字級微調 */
+  .adminLabel { font-size: 12px; }
+  .adminInput, .adminSelect { font-size: 14px; height: 42px; }
+}
+
+/* =========================
+   ADMIN 手機：字體/間距/按鈕整齊
+   ✅ 不影響桌機
+========================= */
+@media (max-width: 820px) {
+
+  /* 文字整體縮一點、行距更緊湊 */
+  .adminSidebar,
+  .adminMain {
+    font-size: 13px !important;
+    line-height: 1.35 !important;
+  }
+
+  .adminBrandTitle { font-size: 14px !important; }
+  .adminBrandSub   { font-size: 12px !important; opacity: .85 !important; }
+
+  .adminSectionTitle { font-size: 14px !important; }
+  .adminSectionSub   { font-size: 12px !important; opacity: .8 !important; }
+
+  /* ✅ 上面那排按鈕：統一高度、字體、間距 */
+  .adminNav {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 10px !important;
+    align-items: stretch !important;
+  }
+
+  .adminNavBtn,
+  .adminBtn,
+  .adminLogoutBtn {
+    height: 42px !important;
+    font-size: 13px !important;
+    border-radius: 14px !important;
+    padding: 0 12px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    white-space: nowrap !important;
+  }
+
+  /* ✅ 你說「登出後台怪怪的」：讓它跟上面同一個網格 */
+  .adminSidebarActions {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 10px !important;
+  }
+
+  /* 如果你登出後台那顆其實是 .adminLogoutBtn（或 .adminBtn），讓它變成佔滿一整列 */
+  .adminLogoutBtn {
+    grid-column: 1 / -1 !important; /* ✅ 直接滿版，視覺最整齊 */
+  }
+
+  /* 表單 input 與 label 更緊湊 */
+  .adminForm label { font-size: 12px !important; opacity: .85 !important; }
+  .adminForm input {
+    height: 40px !important;
+    font-size: 13px !important;
+    border-radius: 12px !important;
+  }
+
+  /* 內容區 padding 微調（更像你要的「乾淨」） */
+  .adminContent { padding: 12px !important; }
+}
+
+/* =========================
+   ✅ Admin Mobile 4 buttons (2x2) - centered & bigger
+========================= */
+@media (max-width: 860px){
+
+  /* 四格容器：置中、不要滿版、間距一致 */
+  .adminQuickGrid{
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 12px !important;
+
+    width: min(520px, 92vw) !important; /* ✅ 看起來像卡片置中 */
+    margin: 12px auto 0 auto !important;
+    align-items: stretch !important;
+  }
+
+  /* 四顆按鈕：全部同大小、變大 */
+  .adminQuickGrid .adminNavBtn,
+  .adminQuickGrid .adminBtn,
+  .adminQuickGrid .adminLogoutBtn{
+    height: 56px !important;           /* ✅ 變大 */
+    padding: 0 16px !important;
+    border-radius: 16px !important;
+    font-size: 15px !important;
+    font-weight: 800 !important;
+
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important; /* ✅ 文字置中 */
+    text-align: center !important;
+    white-space: nowrap !important;
+  }
+
+  /* 如果你按鈕裡面有左右兩段（文字+小數字），也能置中 */
+  .adminQuickGrid .adminNavBtn > *{
+    pointer-events: none;
+  }
+
+  /* 讓四格區塊更像你圖：上方區塊不要太擠 */
+  .adminSidebar{
+    padding: 14px !important;
+  }
+}
+
+/* ✅ 修正：四格按鈕不溢出（手機） */
+@media (max-width: 860px){
+
+  .adminQuickGrid{
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important; /* ⭐ 允許欄位縮 */
+    gap: 12px !important;
+
+    width: min(520px, 92vw) !important;
+    margin: 12px auto 0 auto !important;
+    box-sizing: border-box !important;
+  }
+
+  .adminQuickGrid .adminNavBtn,
+  .adminQuickGrid .adminBtn,
+  .adminQuickGrid .adminLogoutBtn{
+    width: 100% !important;
+    min-width: 0 !important;                 /* ⭐ 允許按鈕縮小 */
+    box-sizing: border-box !important;
+
+    height: 56px !important;
+    padding: 0 12px !important;              /* ⭐ 稍微收一點避免擠爆 */
+    border-radius: 16px !important;
+
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    font-size: 15px !important;
+    font-weight: 800 !important;
+
+    white-space: nowrap !important;          /* 不換行 */
+    overflow: hidden !important;             /* ⭐ 不外溢 */
+    text-overflow: ellipsis !important;      /* ⭐ 太長就… */
+  }
+}
+
+.adminQuickGrid .adminNavBtn,
+.adminQuickGrid .adminBtn,
+.adminQuickGrid .adminLogoutBtn{
+  font-size: clamp(13px, 3.6vw, 15px) !important;
+}
+
+/* ✅ Admin mobile FINAL override: 4 buttons 2x2, never overflow */
+@media (max-width: 900px){
+
+  /* 不管你用 adminNav 還是 adminQuickGrid，都強制 2x2 */
+  .adminNav,
+  .adminQuickGrid{
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important; /* ⭐ 允許縮 */
+    gap: 12px !important;
+
+    width: min(520px, 92vw) !important;
+    margin: 12px auto 0 auto !important;
+    box-sizing: border-box !important;
+    padding: 0 !important;
+  }
+
+  /* 父層也別撐爆 */
+  .adminSidebar,
+  .adminMain,
+  .adminShell{
+    min-width: 0 !important;
+  }
+
+  /* 四顆按鈕本體：一律吃滿格子，允許縮，不外溢 */
+  .adminNavBtn,
+  .adminBtn,
+  .adminLogoutBtn{
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;                 /* ⭐ 最關鍵 */
+    box-sizing: border-box !important;
+
+    height: 56px !important;
+    padding: 0 12px !important;
+    border-radius: 16px !important;
+
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;       /* ⭐ 置中，不要 space-between */
+    gap: 8px !important;
+
+    font-size: 15px !important;
+    font-weight: 800 !important;
+
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  /* ✅ 連按鈕裡面的 icon / span / badge 都不准撐寬 */
+  .adminNavBtn * ,
+  .adminBtn * ,
+  .adminLogoutBtn *{
+    min-width: 0 !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+}
+
+/* ✅ Admin Mobile: 整體放大（只影響手機） */
+@media (max-width: 900px){
+
+  /* 讓整個後台卡片區域更大更滿版 */
+  .adminRoot{
+    padding: 10px !important; /* 外框留一圈小邊距 */
+  }
+
+  /* 右側主容器（含 SETH ADMIN + 四按鈕 + 面板）放寬 */
+  .adminShell{
+    width: 100% !important;
+  }
+
+  .adminSidebar,
+  .adminMain{
+    width: 100% !important;
+    padding: 16px !important;          /* ✅ 整體 padding 變大 */
+    border-radius: 18px !important;
+  }
+
+  /* ===== SETH ADMIN（品牌區）變大 ===== */
+  .adminBrand{
+    padding: 14px 14px !important;
+    border-radius: 18px !important;
+  }
+  .adminBrandTitle{
+    font-size: 17px !important;        /* ✅ SETH ADMIN 變大 */
+    letter-spacing: .12em !important;
+    font-weight: 900 !important;
+  }
+  .adminBrandSub{
+    margin-top: px !important;
+    font-size: 13px !important;        /* ✅ 登入資訊變大 */
+    opacity: .85 !important;
+  }
+
+  /* ===== 四顆按鈕區：變大 + 置中 ===== */
+  .adminNav,
+  .adminQuickGrid{
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px !important;              /* ✅ 間距更舒服 */
+
+    width: min(640px, 96vw) !important;/* ✅ 整塊更大 */
+    margin: 10px auto 0 auto !important;
+  }
+
+  .adminNavBtn,
+  .adminBtn,
+  .adminLogoutBtn{
+    height: 64px !important;           /* ✅ 按鈕變大 */
+    font-size: 16px !important;
+    font-weight: 900 !important;
+    border-radius: 18px !important;
+    padding: 0 14px !important;
+
+    width: 100% !important;
+    min-width: 0 !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    gap: 10px !important;
+    white-space: nowrap !important;
+  }
+
+  /* ===== 下方面板（卡片/表單）變大 ===== */
+  .adminCard{
+    padding: 16px !important;
+    border-radius: 18px !important;
+  }
+
+  .adminLabel{
+    font-size: 13px !important;
+    margin-bottom: 8px !important;
+    opacity: .85 !important;
+  }
+
+  .adminInput,
+  .adminSelect{
+    height: 48px !important;           /* ✅ input 變大好按 */
+    font-size: 15px !important;
+    border-radius: 16px !important;
+    padding: 0 14px !important;
+  }
+
+  /* 表單內主要送出按鈕（例如 新增使用者）再大一點 */
+  .adminCard .adminBtn{
+    height: 56px !important;
+    font-size: 16px !important;
+    border-radius: 18px !important;
+  }
+}
+
+/* =================================
+   ✅ Admin Mobile 按鈕剛好塞框版本
+=================================*/
+@media (max-width: 900px){
+
+  /* 上方卡片內距縮一點 */
+  .adminSidebar{
+    padding: 14px !important;
+  }
+
+  /* 四顆按鈕容器 */
+  .adminNav,
+  .adminQuickGrid{
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;              /* ⭐ 間距縮小 */
+
+    margin-top: 12px !important;
+    width: 100% !important;
+  }
+
+  /* ⭐ 按鈕尺寸（關鍵） */
+  .adminNavBtn,
+  .adminBtn,
+  .adminLogoutBtn{
+
+    height: 48px !important;           /* ← 原本64 太大 */
+    font-size: 14px !important;
+    font-weight: 800 !important;
+
+    border-radius: 14px !important;
+    padding: 0 12px !important;
+
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+
+    width:100% !important;
+    min-width:0 !important;
+  }
+
+  /* icon 與數字不要撐開 */
+  .adminNavBtn *{
+    min-width:0 !important;
+  }
+
+  /* SETH ADMIN 區塊高度更協調 */
+  .adminBrand{
+    padding: 12px 14px !important;
+  }
+
+  .adminBrandTitle{
+    font-size: 17px !important;
+  }
+
+  .adminBrandSub{
+    font-size: 12px !important;
+  }
+}
+
+/* ✅ Admin Mobile：頂部四顆按鈕「完整塞在框內」的大按鈕版 */
+@media (max-width: 900px){
+
+  /* 你紅框那一塊：品牌+四按鈕的容器（如果你有外層卡片可套同名） */
+  .adminSidebar{
+    padding: px !important;
+  }
+
+  /* 四顆按鈕 2x2：吃滿寬度，不要被內容撐縮 */
+  .adminNav,
+  .adminQuickGrid{
+    display:grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 12px !important;
+    width: 143% !important;
+    margin: 12px 0 0 0 !important;
+  }
+
+  /* 按鈕：真正變大、置中、內容不撐寬 */
+  .adminNavBtn{
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 56px !important;              /* ✅ 大按鈕高度 */
+    padding: 0 14px !important;
+    border-radius: 16px !important;
+
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;     /* ✅ 不要 space-between */
+    gap: 10px !important;
+
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    position: relative !important;         /* ✅ 讓徽章可 absolute */
+  }
+
+  /* ✅ 按鈕文字：不准被擠到只剩… */
+  .adminNavBtn .btnText,
+  .adminNavBtn span,
+  .adminNavBtn b{
+    min-width: 0 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  /* ✅ 徽章（1/0）不要占寬：改右上角浮著 */
+  .adminNavBtn .badge,
+  .adminNavBtn .count,
+  .adminNavBtn .adminNavHint{
+    position: absolute !important;
+    right: 10px !important;
+    top: 10px !important;
+    margin: 0 !important;
+
+    font-size: 12px !important;
+    opacity: .85 !important;
+    padding: 2px 6px !important;
+    border-radius: 999px !important;
+    background: rgba(255,255,255,.06) !important;
+    border: 1px solid rgba(255,255,255,.12) !important;
+    pointer-events: none !important;
+  }
+
+  /* 品牌區（SETH ADMIN）字體回到舒服大小 */
+  .adminBrandTitle{ font-size: 17px !important; }
+  .adminBrandSub{ font-size: 12px !important; opacity: .8 !important; }
+}
+
+/* ✅ Admin 手機：四顆按鈕文字置中（最終覆蓋放最底） */
+@media (max-width: 900px){
+
+  /* 按鈕本體：用置中排版 */
+  .adminNavBtn{
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;  /* ✅ 文字置中 */
+    text-align: center !important;
+    gap: 8px !important;
+    padding: 0 12px !important;
+
+    position: relative !important;       /* ✅ 給徽章 absolute 用 */
+  }
+
+  /* 任何 span/icon 都不要把寬度撐開 */
+  .adminNavBtn > *{
+    min-width: 0 !important;
+  }
+
+  /* 右上角數字（1 / 0）：改浮在右上角，不佔版面 */
+  .adminNavBtn .adminNavHint,
+  .adminNavBtn .badge,
+  .adminNavBtn .count{
+    position: absolute !important;
+    top: 10px !important;
+    right: 10px !important;
+    margin: 0 !important;
+
+    font-size: 12px !important;
+    line-height: 1 !important;
+    padding: 2px 6px !important;
+    border-radius: 999px !important;
+
+    background: rgba(255,255,255,.06) !important;
+    border: 1px solid rgba(255,255,255,.12) !important;
+    pointer-events: none !important;
+  }
+}
+
+/* ✅ 手機：四顆按鈕真正水平置中 */
+@media (max-width: 900px){
+
+  .adminNavBtn{
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important; /* 真正置中 */
+
+    position:relative !important;      /* ⭐ 給 badge 定位 */
+    text-align:center !important;
+  }
+
+  /* ⭐ 關鍵：讓所有內容不影響置中 */
+  .adminNavBtn > *{
+    flex: 0 0 auto !important;
+  }
+
+  /* ===== 數字 1 / 0 ===== */
+  .adminNavBtn .adminNavHint{
+    position:absolute !important;  /* ⭐ 脫離排版 */
+    right:10px !important;
+    top:50% !important;
+    transform:translateY(-50%) !important;
+
+    margin:0 !important;
+    font-size:12px !important;
+    padding:2px 6px !important;
+    border-radius:999px !important;
+
+    background:rgba(255,255,255,.08);
+    border:1px solid rgba(255,255,255,.15);
+    pointer-events:none;
+  }
+}
+
+/* =========================================
+   ✅ Front Login (Mobile) -> look like Admin
+   只影響「前端登入頁」手機板，不動桌機/其他頁
+   ========================================= */
+@media (max-width: 900px){
+
+  .app.loginOnly .loginPanel{
+  transform: translateY(-10vh);
+}
+
+  /* 前端登入頁：整頁置中 + 後台同款背景 */
+  .app.loginOnly{
+    min-height: 100vh !important;
+    display: grid !important;
+    place-items: center !important;
+    padding: 18px !important;
+
+    background:
+      radial-gradient(1200px 700px at 15% 15%, rgba(95,130,255,.22), transparent 55%),
+      radial-gradient(900px 600px at 80% 20%, rgba(64,255,207,.14), transparent 60%),
+      radial-gradient(900px 650px at 60% 90%, rgba(255,120,210,.12), transparent 55%),
+      linear-gradient(180deg, #070914 0%, #050712 100%) !important;
+  }
+
+  /* 外層容器寬度（跟後台登入卡一致） */
+  .app.loginOnly .panel{
+    width: min(460px, 92vw) !important;
+  }
+
+  /* 把原本的 margin-top 拿掉，避免往下掉 */
+  .app.loginOnly .loginPanel{
+    margin-top: 0 !important;
+  }
+
+  /* 登入卡片（玻璃擬態） */
+  .app.loginOnly .loginPanel{
+    border: 1px solid rgba(255,255,255,.14) !important;
+    background: rgba(255,255,255,.06) !important;
+    border-radius: 18px !important;
+    padding: 18px !important;
+    backdrop-filter: blur(12px) !important;
+    box-shadow: 0 30px 80px rgba(0,0,0,.45) !important;
+    color: #e9ecff !important;
+  }
+
+  /* 標題/版本字（跟後台的層級感像） */
+  .app.loginOnly .title{
+    font-size: 18px !important;
+    font-weight: 900 !important;
+    margin: 0 !important;
+    color: #ffffff !important;
+    letter-spacing: .08em !important;
+  }
+  .app.loginOnly .version{
+    margin: 6px 0 14px 0 !important;
+    font-size: 12px !important;
+    color: rgba(233,236,255,.62) !important;
+  }
+
+  /* input 改成後台同款：圓角、暗底、描邊 */
+  .app.loginOnly .input{
+    width: 100% !important;
+    height: 48px !important;
+    padding: 0 14px !important;
+    margin-bottom: 12px !important;
+
+    border-radius: 14px !important;
+    border: 1px solid rgba(255,255,255,.12) !important;
+    background: rgba(0,0,0,.22) !important;
+    color: #e9ecff !important;
+
+    font-size: 14px !important;
+    outline: none !important;
+  }
+  .app.loginOnly .input:focus{
+    border-color: rgba(140,165,255,.55) !important;
+    box-shadow: 0 0 0 3px rgba(90,120,255,.18) !important;
+  }
+
+  /* 登入按鈕改成後台同款：霓虹漸層 */
+  .app.loginOnly .button{
+    width: 100% !important;
+    height: 50px !important;
+    padding: 0 14px !important;
+
+    border-radius: 14px !important;
+    border: 1px solid rgba(140,165,255,.35) !important;
+    background: linear-gradient(180deg, rgba(90,120,255,.26), rgba(0,0,0,.18)) !important;
+    color: #ffffff !important;
+
+    font-size: 14px !important;
+    font-weight: 900 !important;
+    letter-spacing: .06em !important;
+  }
+  .app.loginOnly .button:hover{
+    border-color: rgba(140,165,255,.60) !important;
+    background: linear-gradient(180deg, rgba(90,120,255,.34), rgba(0,0,0,.18)) !important;
+  }
+}
+
+/* =========================
+   Login (Desktop) — Glass card + centered (slightly upper)
+   Only affects .app.loginOnly
+========================= */
+.app.loginOnly{
+  min-height: 100vh !important;
+  display: grid !important;
+  place-items: center !important;
+  padding: 24px !important;
+
+  /* ✅ 跟後台一致的深色霓虹背景（你也可以保留影片/背景圖） */
+  background:
+    radial-gradient(1200px 700px at 15% 15%, rgba(95,130,255,.22), transparent 55%),
+    radial-gradient(900px 600px at 80% 20%, rgba(64,255,207,.14), transparent 60%),
+    radial-gradient(900px 650px at 60% 90%, rgba(255,120,210,.12), transparent 55%),
+    linear-gradient(180deg, #070914 0%, #050712 100%) !important;
+}
+
+/* ✅ 登入卡片容器往上偏一點（電腦版） */
+.app.loginOnly .loginPanel{
+  margin-top: 0 !important;
+  transform: translateY(-6vh) !important; /* 想更上：-7vh；想更下：-4vh */
+}
+
+/* ✅ 玻璃卡片本體（你原本 .panel 是寬 720） */
+.app.loginOnly .panel{
+  width: min(520px, 92vw) !important;
+}
+
+/* ✅ 卡片外觀：玻璃感 + 圓角 + 邊框 */
+.app.loginOnly .loginPanel{
+  border: 1px solid rgba(255,255,255,.14) !important;
+  background: rgba(255,255,255,.06) !important;
+  border-radius: 18px !important;
+  padding: 18px !important;
+  backdrop-filter: blur(12px) !important;
+  box-shadow: 0 30px 80px rgba(0,0,0,.45) !important;
+}
+
+/* ✅ 標題/版本字 */
+.app.loginOnly .title{
+  font-size: 22px !important;
+  font-weight: 900 !important;
+  color: #e9ecff !important;
+  letter-spacing: .06em !important;
+  margin: 0 0 6px 0 !important;
+}
+.app.loginOnly .version{
+  font-size: 12px !important;
+  color: rgba(233,236,255,.62) !important;
+  margin: 0 0 14px 0 !important;
+}
+
+/* ✅ 輸入框：後台同款 */
+.app.loginOnly .input{
+  width: 100% !important;
+  height: 46px !important;
+  padding: 0 14px !important;
+  border-radius: 14px !important;
+  border: 1px solid rgba(255,255,255,.12) !important;
+  background: rgba(0,0,0,.22) !important;
+  color: #fff !important;
+  font-size: 14px !important;
+  margin-bottom: 12px !important;
+  outline: none !important;
+}
+.app.loginOnly .input:focus{
+  border-color: rgba(140,165,255,.55) !important;
+  box-shadow: 0 0 0 3px rgba(90,120,255,.18) !important;
+}
+
+/* ✅ 登入按鈕：後台同款 */
+.app.loginOnly .button{
+  width: 100% !important;
+  height: 52px !important;
+  border-radius: 14px !important;
+  border: 1px solid rgba(140,165,255,.35) !important;
+  background: linear-gradient(180deg, rgba(90,120,255,.26), rgba(0,0,0,.18)) !important;
+  color: #fff !important;
+  font-size: 15px !important;
+  font-weight: 900 !important;
+  cursor: pointer !important;
+}
+.app.loginOnly .button:hover{
+  border-color: rgba(140,165,255,.60) !important;
+  box-shadow: 0 0 26px rgba(96,165,250,.16) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* ===== Login Button 深色版 ===== */
+.app.loginOnly .button{
+
+  /* ⭐ 更深的漸層 */
+  background: linear-gradient(
+    180deg,
+    rgba(60,80,180,.28),
+    rgba(10,14,28,.85)
+  ) !important;
+
+  border: 1px solid rgba(110,130,255,.35) !important;
+
+  color: #ffffff !important;
+  font-weight: 900 !important;
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.08),
+    0 10px 30px rgba(0,0,0,.45) !important;
+}
+
+/* hover（電腦版） */
+.app.loginOnly .button:hover{
+  background: linear-gradient(
+    180deg,
+    rgba(70,95,210,.35),
+    rgba(8,12,24,.95)
+  ) !important;
+
+  border-color: rgba(140,165,255,.55) !important;
+}

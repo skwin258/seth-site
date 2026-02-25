@@ -1,0 +1,12 @@
+{
+	"name": "sk-auth-api",
+	"main": "src/index.js",
+	"compatibility_date": "2024-02-01",
+	"d1_databases": [
+		{
+			"binding": "sk_auth_db",
+			"database_name": "sk-auth-db",
+			"database_id": "b783dc64-da43-4b85-b21f-bcdb0a77edd3"
+		}
+	]
+}

@@ -1,5 +1,6 @@
 // src/pages/Admin.jsx
-import { useEffect, useMemo, useState } from "react";
+
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { Navigate } from "react-router-dom";
 import {
   getAdminSession,
@@ -14,9 +15,10 @@ import {
   addUses,
   setUnlimited,
 
-  // ✅ 這兩個一定要有
   setRoomRateOverride,
   getRoomRateOverrideAll,
+
+  onAuthChanged,
 } from "../services/authService";
 
 /** 8款：ATG 5款 + GR 3款 */
@@ -40,6 +42,29 @@ function clampInt(n, min, max) {
   return Math.max(min, Math.min(max, v));
 }
 
+/** ✅ 兼容 sync / async 回傳：一律變成 Promise */
+function asPromise(v) {
+  try {
+    return Promise.resolve(v);
+  } catch (e) {
+    return Promise.reject(e);
+  }
+}
+
+/** ✅ 把各種回傳格式正規化成 array */
+function normalizeArray(result, possibleKey) {
+  if (Array.isArray(result)) return result;
+  if (result && typeof result === "object") {
+    const k = possibleKey && result[possibleKey];
+    if (Array.isArray(k)) return k;
+    // 有些 API 會回 { ok:true, data:[...] }
+    if (Array.isArray(result.data)) return result.data;
+    if (Array.isArray(result.users)) return result.users;
+    if (Array.isArray(result.admins)) return result.admins;
+  }
+  return [];
+}
+
 export default function Admin() {
   const [adminSess, setAdminSess] = useState(() => getAdminSession());
   const role = adminSess?.role || "";
@@ -50,9 +75,13 @@ export default function Admin() {
 
   const [users, setUsers] = useState([]);
   const [selectedId, setSelectedId] = useState("");
+
+  // ✅ 這裡一定要保證 users 是 array（防止 users.find 爆）
+  const usersArr = useMemo(() => (Array.isArray(users) ? users : []), [users]);
+
   const selected = useMemo(
-    () => users.find((x) => x.id === selectedId) || null,
-    [users, selectedId]
+    () => usersArr.find((x) => x?.id === selectedId) || null,
+    [usersArr, selectedId]
   );
 
   // 新增使用者
@@ -63,6 +92,8 @@ export default function Admin() {
 
   // 超管：新增管理員
   const [admins, setAdmins] = useState([]);
+  const adminsArr = useMemo(() => (Array.isArray(admins) ? admins : []), [admins]);
+
   const [aId, setAId] = useState("");
   const [aPw, setAPw] = useState("");
   const [aName, setAName] = useState("");
@@ -83,21 +114,89 @@ export default function Admin() {
     setTimeout(() => setMsg(""), 1400);
   }
 
-  function reload() {
-    setAdminSess(getAdminSession());
-    try { setUsers(listUsers()); } catch { setUsers([]); }
-    try { setAdmins(listAdmins()); } catch { setAdmins([]); }
-    try { setOverrideAll(getRoomRateOverrideAll()); } catch { setOverrideAll({}); }
-  }
+  /**
+   * ✅ 重點：reload 改成 async + 全部 try/catch + normalize
+   * - 支援 listUsers/listAdmins 是 sync 或 async
+   * - 不會再出現 Uncaught (in promise)
+   */
+  const reload = useCallback(async () => {
+    // 先同步 session
+    const sess = getAdminSession();
+    setAdminSess(sess);
 
-  useEffect(() => { reload(); }, []);
+    // 沒登入就不用打任何資料，避免「未登入後台」一直噴
+    if (!sess?.id) {
+      setUsers([]);
+      setAdmins([]);
+      setOverrideAll({});
+      return;
+    }
+
+    // users
+    try {
+      const uRes = await asPromise(listUsers());
+      setUsers(normalizeArray(uRes, "users"));
+    } catch (e) {
+      const msg = String(e?.message || e);
+      if (msg.includes("未登入後台") || msg.includes("not_admin") || msg.includes("401")) {
+        // ✅ 後台 session 失效 → 直接登出並導頁
+        try { adminLogout(); } catch {}
+        setAdminSess(null);
+        setUsers([]);
+        setAdmins([]);
+        setOverrideAll({});
+        return;
+      }
+      setUsers([]);
+    }
+
+    // admins
+    try {
+      const aRes = await asPromise(listAdmins());
+      setAdmins(normalizeArray(aRes, "admins"));
+    } catch (e) {
+      const msg = String(e?.message || e);
+      if (msg.includes("未登入後台") || msg.includes("not_admin") || msg.includes("401")) {
+        try { adminLogout(); } catch {}
+        setAdminSess(null);
+        setUsers([]);
+        setAdmins([]);
+        setOverrideAll({});
+        return;
+      }
+      setAdmins([]);
+    }
+
+    // overrideAll
+    try {
+      const oRes = await asPromise(getRoomRateOverrideAll());
+      setOverrideAll(oRes && typeof oRes === "object" ? oRes : {});
+    } catch {
+      setOverrideAll({});
+    }
+  }, []);
+
+  useEffect(() => {
+    reload();
+  }, [reload]);
+
+  // ✅ 跨分頁同步：任何變更就 reload（也不會噴 uncaught）
+  useEffect(() => {
+    const off = onAuthChanged(() => {
+      reload();
+    });
+    return off;
+  }, [reload]);
 
   // ✅ 沒後台登入：直接導去 /admin-login
   if (!isAuthed) return <Navigate to="/admin-login" replace />;
 
   function doAdminLogout() {
-    adminLogout();
-    reload();
+    try { adminLogout(); } catch {}
+    setAdminSess(null);
+    setUsers([]);
+    setAdmins([]);
+    setOverrideAll({});
     location.href = "/admin-login";
   }
 
@@ -230,22 +329,19 @@ export default function Admin() {
           <div className="adminNav">
             {/* ✅ 手機版：四格對齊（CSS 控制只在手機顯示） */}
             <div className="adminQuickGrid" role="group" aria-label="Quick actions">
-              {/* 左上：使用者 */}
               <button
                 className={`adminNavBtn ${tab === "users" ? "active" : ""}`}
                 onClick={() => setTab("users")}
                 type="button"
               >
                 <span>👤 使用者</span>
-                <span className="adminNavHint">{users.length}</span>
+                <span className="adminNavHint">{usersArr.length}</span>
               </button>
 
-              {/* 右上：登出後台 */}
               <button className="adminBtn adminQuickLogout" onClick={doAdminLogout} type="button">
                 登出後台
               </button>
 
-              {/* 左下：單房覆蓋 */}
               <button
                 className={`adminNavBtn ${tab === "override" ? "active" : ""}`}
                 onClick={() => setTab("override")}
@@ -255,25 +351,25 @@ export default function Admin() {
                 <span className="adminNavHint">{overrideCount}</span>
               </button>
 
-              {/* 右下：重新載入 */}
               <button className="adminBtn secondary adminQuickReload" onClick={reload} type="button">
                 重新載入
               </button>
+
+              {isSuper && (
+                <button
+                  className={`adminNavBtn adminSuperOnly ${tab === "admins" ? "active" : ""}`}
+                  onClick={() => setTab("admins")}
+                  type="button"
+                >
+                  <span>🛡️ 管理員</span>
+                  <span className="adminNavHint">
+                    {adminsArr.filter((a) => a?.role === "admin").length}
+                  </span>
+                </button>
+              )}
             </div>
 
-            {/* ✅ 超管：手機額外顯示「管理員」入口（不打破四格） */}
-            {isSuper && (
-              <button
-                className={`adminNavBtn adminSuperOnly ${tab === "admins" ? "active" : ""}`}
-                onClick={() => setTab("admins")}
-                type="button"
-              >
-                <span>🛡️ 管理員</span>
-                <span className="adminNavHint">{admins.filter((a) => a.role === "admin").length}</span>
-              </button>
-            )}
-
-            {/* ✅ 桌機版：原本側邊直排（CSS 控制只在桌機顯示） */}
+            {/* ✅ 桌機版：原本側邊直排 */}
             <div className="adminNavStack">
               <button
                 className={`adminNavBtn ${tab === "users" ? "active" : ""}`}
@@ -281,7 +377,7 @@ export default function Admin() {
                 type="button"
               >
                 <span>👤 使用者</span>
-                <span className="adminNavHint">{users.length}</span>
+                <span className="adminNavHint">{usersArr.length}</span>
               </button>
 
               <button
@@ -300,7 +396,9 @@ export default function Admin() {
                   type="button"
                 >
                   <span>🛡️ 管理員</span>
-                  <span className="adminNavHint">{admins.filter((a) => a.role === "admin").length}</span>
+                  <span className="adminNavHint">
+                    {adminsArr.filter((a) => a?.role === "admin").length}
+                  </span>
                 </button>
               )}
 
@@ -321,7 +419,6 @@ export default function Admin() {
               )}
             </div>
 
-            {/* ✅ 手機版訊息（避免被桌機 stack 的 msg 隱藏） */}
             {msg && <div className="adminMsgMobile">{msg}</div>}
           </div>
         </aside>
@@ -341,7 +438,6 @@ export default function Admin() {
             {/* USERS TAB */}
             {tab === "users" && (
               <div className="adminRow" style={{ alignItems: "start" }}>
-                {/* Left: create user */}
                 <div className="adminCard">
                   <div style={{ fontWeight: 900, marginBottom: 10 }}>新增使用者</div>
 
@@ -370,19 +466,17 @@ export default function Admin() {
                   </div>
                 </div>
 
-                {/* Right: user list + panel */}
                 <div className="adminCard">
                   <div style={{ fontWeight: 900, marginBottom: 10 }}>使用者清單</div>
 
                   <div className="adminRow" style={{ gridTemplateColumns: "360px 1fr" }}>
-                    {/* List */}
                     <div style={{ borderRight: "1px solid rgba(255,255,255,.10)", paddingRight: 12 }}>
                       <div style={{ fontSize: 12, color: "rgba(233,236,255,.55)", marginBottom: 10 }}>
                         點選一個使用者：
                       </div>
 
                       <div style={{ display: "grid", gap: 8, maxHeight: 520, overflow: "auto", paddingRight: 6 }}>
-                        {users.map((u) => {
+                        {usersArr.map((u) => {
                           const active = selectedId === u.id;
                           const uses = u.unlimited ? "∞" : (Number.isFinite(u.usesLeft) ? u.usesLeft : 0);
                           const state = u.disabled ? "停用" : "正常";
@@ -408,7 +502,6 @@ export default function Admin() {
                       </div>
                     </div>
 
-                    {/* Panel */}
                     <div style={{ paddingLeft: 2 }}>
                       {!selected ? (
                         <div style={{ color: "rgba(233,236,255,.60)" }}>尚未選取使用者</div>
@@ -518,7 +611,7 @@ export default function Admin() {
                   <div style={{ fontSize: 13, color: "rgba(233,236,255,.70)", lineHeight: 1.65 }}>
                     <div>• 這裡只會修改「單一房號」的大獎中獎率。</div>
                     <div>• 套用後前台會透過你現有的 getRoomRateOverride() 即時反映。</div>
-                    <div>• 若你要做「指定管理員只能看到自己建立的 users」，那是 users/admins 的 list 過濾邏輯（下個檔我再幫你補）。</div>
+                    <div>• 若你要做「指定管理員只能看到自己建立的 users」，那是 users/admins 的 list 過濾邏輯。</div>
                   </div>
                 </div>
               </div>
@@ -564,7 +657,7 @@ export default function Admin() {
                         </tr>
                       </thead>
                       <tbody>
-                        {admins.filter((a) => a.role === "admin").map((a) => (
+                        {adminsArr.filter((a) => a?.role === "admin").map((a) => (
                           <tr key={a.id}>
                             <td>{a.id}</td>
                             <td>{a.name || "-"}</td>
@@ -576,7 +669,7 @@ export default function Admin() {
                             </td>
                           </tr>
                         ))}
-                        {admins.filter((a) => a.role === "admin").length === 0 && (
+                        {adminsArr.filter((a) => a?.role === "admin").length === 0 && (
                           <tr>
                             <td colSpan={4} style={{ color: "rgba(233,236,255,.55)" }}>
                               尚無管理員

@@ -5,12 +5,17 @@ import { Navigate } from "react-router-dom";
 import { useSite } from "../store/SiteStore";
 
 import {
+  onAuthChanged,
+  refreshCurrentUserSession,
   getCurrentUser as getUserSession,
   consumeOneUseAndRenew,
   getRoomConfig,
-  getRoomRateOverride,
-  refreshCurrentUserSession,
+  getRoomRateOverrideAll,
   logout as authLogout,
+
+  // ✅ 只為 5 分鐘倒數用（你上一支 authService 已加入）
+  getCycleEndAtMs,
+  isCycleExpired,
 } from "../services/authService";
 
 import vendorATG from "../assets/logo.png";
@@ -58,7 +63,7 @@ function mulberry32(seed) {
   let a = seed >>> 0;
   return function () {
     a |= 0;
-    a = (a + 0x6D2B79F5) | 0;
+    a = (a + 0x6d2b79f5) | 0;
     let t = Math.imul(a ^ (a >>> 15), 1 | a);
     t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
@@ -77,8 +82,7 @@ function rateLevel(rate) {
  * 推薦用（ATG 金額邏輯保留）
  * ========================= */
 const ATG_AMOUNTS = [
-  1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
-  12, 14, 16, 18, 20, 24, 28, 30, 32, 36, 40, 42, 48, 54, 56, 60, 64, 72, 80
+  1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 14, 16, 18, 20, 24, 28, 30, 32, 36, 40, 42, 48, 54, 56, 60, 64, 72, 80,
 ];
 function nextAllowedAmountCeil(n) {
   for (const v of ATG_AMOUNTS) if (v >= n) return v;
@@ -88,16 +92,22 @@ function pickFlatByRate(rate, rng) {
   const candidates = ATG_AMOUNTS.filter((v) => v >= 40 && v <= 80);
   const t = clamp((rate - 40) / 56, 0, 1);
   const baseIdx = Math.floor(t * (candidates.length - 1));
-  const jitter = rng() < 0.7 ? 0 : (rng() < 0.85 ? 1 : -1);
+  const jitter = rng() < 0.7 ? 0 : rng() < 0.85 ? 1 : -1;
   let idx = baseIdx + jitter;
   idx = clamp(idx, 0, candidates.length - 1);
   return candidates[idx];
 }
 function pickSpinPairByRate(rate, rng) {
-  const pairs = [[40, 50],[50, 60],[60, 70],[70, 80],[80, 90]];
+  const pairs = [
+    [40, 50],
+    [50, 60],
+    [60, 70],
+    [70, 80],
+    [80, 90],
+  ];
   const t = clamp((rate - 40) / 56, 0, 1);
   const baseIdx = Math.floor(t * (pairs.length - 1));
-  const jitter = rng() < 0.7 ? 0 : (rng() < 0.85 ? 1 : -1);
+  const jitter = rng() < 0.7 ? 0 : rng() < 0.85 ? 1 : -1;
   let idx = baseIdx + jitter;
   idx = clamp(idx, 0, pairs.length - 1);
   return { spinFrom: pairs[idx][0], spinTo: pairs[idx][1] };
@@ -196,13 +206,20 @@ const VENDORS = [
 export default function FrontApp() {
   const { currentUser, setCurrentUser } = useSite();
 
-  // 沒登入 → 強制去 /login
+  // ✅ 沒登入直接踢去 login
   if (!currentUser) return <Navigate to="/login" replace />;
 
-  // ✅ 進頁面時同步一次 session
+  /* =========================
+   * 進頁面時：用 local session 先補，再打一輪 API refresh
+   * ========================= */
   useEffect(() => {
-    const fresh = getUserSession();
-    if (fresh?.id && fresh.id === currentUser.id) setCurrentUser(fresh);
+    const local = getUserSession();
+    if (local?.id && local.id === currentUser.id) setCurrentUser(local);
+
+    (async () => {
+      const r = await refreshCurrentUserSession();
+      if (r.ok && r.sess?.id === currentUser.id) setCurrentUser(r.sess);
+    })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -239,7 +256,7 @@ export default function FrontApp() {
 
   const [mainVideoSrc, setMainVideoSrc] = useState(bgVideo);
 
-  // ✅ 倒數更新（每秒）— 只用來讓倒數刷新，不要拿去重算 rooms
+  // ✅ 倒數更新（每秒）— 只用來讓倒數刷新
   const [clockTick, setClockTick] = useState(0);
   useEffect(() => {
     const id = setInterval(() => setClockTick((t) => t + 1), 1000);
@@ -249,77 +266,149 @@ export default function FrontApp() {
   // ✅ 後台停用/刪除：強制彈窗（立即登出）
   const [forceModal, setForceModal] = useState(null);
 
+  /* =========================
+   * ✅ 每 3 秒 refresh（disabled/deleted/unauthorized）
+   * ========================= */
   useEffect(() => {
-    if (!currentUser?.id) return;
+    let alive = true;
 
-    const id = setInterval(() => {
-      const r = refreshCurrentUserSession();
+    const tick = async () => {
+      try {
+        const r = await refreshCurrentUserSession();
+        if (!alive) return;
 
-      if (!r.ok) {
-        if (r.reason === "disabled") {
-          setForceModal({
-            type: "disabled",
-            title: "此帳號已被鎖定",
-            sub: "請聯絡管理員，或更換帳號重新登入。",
-          });
-        } else if (r.reason === "deleted") {
-          setForceModal({
-            type: "deleted",
-            title: "此帳號已被刪除",
-            sub: "請聯絡管理員，或更換帳號重新登入。",
-          });
+        if (!r.ok) {
+          const reason = String(r.reason || "").toLowerCase();
+          if (reason.includes("disabled")) {
+            setForceModal({ type: "disabled", title: "此帳號已被鎖定", sub: "請聯絡管理員，或更換帳號重新登入。" });
+          } else if (reason.includes("deleted")) {
+            setForceModal({ type: "deleted", title: "此帳號已被刪除", sub: "請聯絡管理員，或更換帳號重新登入。" });
+          } else {
+            setForceModal({ type: "unauth", title: "登入已失效", sub: "請重新登入。" });
+          }
+          return;
         }
-        return;
-      }
 
-      if (r.sess?.id === currentUser.id) setCurrentUser(r.sess);
-    }, 1000);
+        if (r.sess?.id === currentUser.id) setCurrentUser(r.sess);
+      } catch {}
+    };
 
-    return () => clearInterval(id);
+    tick();
+    const id = setInterval(tick, 3000);
+
+    return () => {
+      alive = false;
+      clearInterval(id);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser?.id]);
 
-  // ✅ 是否鎖住（停用/次數不足/本輪已到期）
-  const usesLeft = Number.isFinite(currentUser.usesLeft) ? currentUser.usesLeft : 0;
+  /* =========================
+   * ✅ 同瀏覽器分頁同步（storage event）
+   * ========================= */
+  useEffect(() => {
+    const off = onAuthChanged(() => {
+      (async () => {
+        const r = await refreshCurrentUserSession();
+        if (r.ok && r.sess?.id === currentUser.id) setCurrentUser(r.sess);
+      })();
+    });
+    return () => off?.();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUser?.id]);
+
+  /* =========================
+   * ✅ 5 分鐘（核心修正區）
+   * ========================= */
+  const usesLeft = Math.max(0, Number.isFinite(Number(currentUser.usesLeft)) ? Number(currentUser.usesLeft) : 0);
   const isUnlimited = !!currentUser.unlimited;
   const isDisabled = !!currentUser.disabled;
+
   const noUses = !isUnlimited && usesLeft <= 0;
 
-  const cycleEndAt = Number.isFinite(currentUser.cycleEndAt) ? currentUser.cycleEndAt : 0;
-  const msLeft = Math.max(0, cycleEndAt - Date.now());
+  // ✅ 用 authService 校正後的 cycleEndAt（一定是 ms；refresh 沒給也會保留舊值）
+  const cycleEndAt = getCycleEndAtMs(); // ms
+  const now = Date.now();
+  const expired = isUnlimited ? false : isCycleExpired(now);
+
+  const msLeft = isUnlimited ? 0 : Math.max(0, cycleEndAt - now);
   const totalSec = Math.floor(msLeft / 1000);
   const mm = Math.floor(totalSec / 60);
   const ss = totalSec % 60;
-  const cycleExpired = msLeft <= 0;
 
-  const locked = isDisabled || noUses || cycleExpired;
+  // ✅ locked：停用 / 次數不足 / (非 unlimited 且 5 分鐘到期或尚未開始)
+  const locked = isDisabled || noUses || (!isUnlimited && expired);
 
+  // ✅ 5 分鐘提示窗：只在「非停用、非 unlimited、有剩餘次數」且「到期/尚未開始」才出現
   const [showUsePrompt, setShowUsePrompt] = useState(false);
   const [dismissedUsePrompt, setDismissedUsePrompt] = useState(false);
 
   useEffect(() => {
     if (forceModal) return;
-    if (cycleExpired && !isDisabled && !dismissedUsePrompt) {
-      setShowUsePrompt(true);
+
+    // ✅ 如果還沒到期（例如 consume 成功開新 5 分鐘），自動關掉提示
+    if (!expired) {
+      if (showUsePrompt) setShowUsePrompt(false);
+      if (dismissedUsePrompt) setDismissedUsePrompt(false);
+      return;
     }
-  }, [cycleExpired, isDisabled, dismissedUsePrompt, forceModal, clockTick]);
+
+    // ✅ 到期/沒開始：只有「有次數 & 非 unlimited」才提示
+    if (!isDisabled && !isUnlimited && usesLeft > 0 && !dismissedUsePrompt) {
+      setShowUsePrompt(true);
+    } else {
+      setShowUsePrompt(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [expired, isDisabled, isUnlimited, usesLeft, dismissedUsePrompt, forceModal, clockTick]);
 
   /* =========================
    * Derived
    * ========================= */
-  const gamesForRooms = useMemo(
-    () => (activeVendorId === "GR" ? GR_GAMES : ATG_GAMES),
-    [activeVendorId]
-  );
+  const gamesForRooms = useMemo(() => (activeVendorId === "GR" ? GR_GAMES : ATG_GAMES), [activeVendorId]);
 
   const activeGameBase = useMemo(() => {
     return gamesForRooms.find((g) => g.id === activeGameId) || gamesForRooms[0];
   }, [gamesForRooms, activeGameId]);
 
-  // ✅ 不要用每秒 tick 來重算，改用 bucket3Min（比較合理）
-  const gameCfg = useMemo(() => {
-    return getRoomConfig(activeVendorId, activeGameBase?.id) || null;
-  }, [activeVendorId, activeGameBase?.id, bucket3Min]);
+  const [gameCfg, setGameCfg] = useState(null);
+
+  // ✅ expireAt 可能是秒或毫秒，統一轉 ms
+  function toMs(ts) {
+    const n = Number(ts || 0);
+    if (!n) return 0;
+    return n < 1e12 ? n * 1000 : n;
+  }
+
+  // ✅ 單房覆蓋：一次抓全量（避免每房打 API）
+  const [overrideAll, setOverrideAll] = useState({});
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const all = await getRoomRateOverrideAll();
+        if (alive) setOverrideAll(all || {});
+      } catch {
+        if (alive) setOverrideAll({});
+      }
+    })();
+    return () => (alive = false);
+  }, [activeVendorId, activeGameId, bucket3Min]);
+  
+
+useEffect(() => {
+  let alive = true;
+  (async () => {
+    try {
+      const cfg = await getRoomConfig(activeVendorId, activeGameBase?.id);
+      if (alive) setGameCfg(cfg || null);
+    } catch {
+      if (alive) setGameCfg(null);
+    }
+  })();
+  return () => (alive = false);
+}, [activeVendorId, activeGameBase?.id, bucket3Min]);
 
   const activeGame = useMemo(() => {
     if (!activeGameBase) return null;
@@ -349,16 +438,18 @@ export default function FrontApp() {
       const roomRng = mulberry32(hashStrToInt(`${activeGameId}|ROOM|${no}|${bucket3Min}`));
       let rate = genRate(roomRng, isHot);
 
-      const override = getRoomRateOverride(activeVendorId, activeGameId, no);
-      if (override?.rate != null && (!override.expireAt || Date.now() < override.expireAt)) {
-        rate = override.rate;
+      const hit = overrideAll?.[activeVendorId]?.[activeGameId]?.[String(no)] || null;
+      const exp = toMs(hit?.expireAt);
+
+      if (hit?.rate != null && (!exp || Date.now() < exp)) {
+        rate = Number(hit.rate);
       }
 
       const level = rateLevel(rate);
       const hot = rate >= 92;
       return { no, rate, level, hot };
     });
-  }, [activeVendorId, activeGameId, roomPage, bucket3Min, startIndex, hotSet]);
+    }, [activeVendorId, activeGameId, roomPage, bucket3Min, startIndex, hotSet, overrideAll]);
 
   const vendorCode = useMemo(() => randCode(10), [activeVendorId, bucket5Min]);
 
@@ -382,9 +473,13 @@ export default function FrontApp() {
   }
 
   function handleLogout() {
-    try { authLogout(); } catch {}
+    try {
+      authLogout();
+    } catch {}
     setCurrentUser(null);
-    setPage("login");
+
+    setPage("menuVendorPick");
+    setMenu("外掛選房程式");
     setActiveVendorId("ATG");
     setActiveGameId("戰神賽特");
     setRoomPage(1);
@@ -424,10 +519,13 @@ export default function FrontApp() {
     setIntroOpen(false);
   }, [page, introOpen]);
 
+  // ✅ 按「使用」：consume 成功後，後端/前端會開新 5 分鐘，UI 立即刷新倒數
   async function onUseOne() {
     try {
-      const updated = consumeOneUseAndRenew(currentUser.id);
+      const updated = await consumeOneUseAndRenew();
       setCurrentUser(updated);
+
+      // ✅ 立刻關窗 + 清 dismissed（避免下一秒又跳）
       setShowUsePrompt(false);
       setDismissedUsePrompt(false);
     } catch (e) {
@@ -481,14 +579,12 @@ export default function FrontApp() {
       </button>
 
       <div className="userBoxMobile">
+        <div className="userLine">使用者名稱：{currentUser.displayName || currentUser.id}</div>
+        <div className="userLine">剩餘使用次數：{isUnlimited ? "無限" : `${usesLeft} 使用`}</div>
+
         <div className="userLine">
-          使用者名稱：{currentUser.displayName || currentUser.id}
-        </div>
-        <div className="userLine">
-          剩餘使用次數：{isUnlimited ? "無限" : `${usesLeft} 使用`}
-        </div>
-        <div className="userLine">
-          當前次數剩餘時間：{String(mm).padStart(2, "0")}:{String(ss).padStart(2, "0")}
+          當前次數剩餘時間：
+          {isUnlimited ? "∞" : `${String(mm).padStart(2, "0")}:${String(ss).padStart(2, "0")}`}
         </div>
 
         {locked && (
@@ -497,7 +593,7 @@ export default function FrontApp() {
           </div>
         )}
 
-        {cycleExpired && !isDisabled && dismissedUsePrompt && (
+        {expired && !isDisabled && dismissedUsePrompt && !noUses && !isUnlimited && (
           <button
             type="button"
             onClick={() => {
@@ -518,8 +614,6 @@ export default function FrontApp() {
       <SidebarInner />
     </aside>
   );
-
-  if (page === "login") return <Navigate to="/login" replace />;
 
   const ForceModalUI = forceModal ? (
     <div className="modalMask" onClick={(e) => e.stopPropagation()}>
@@ -544,17 +638,10 @@ export default function FrontApp() {
   const MobileTopbar = (
     <div className="mobileTopbar">
       <div className="mobileTopLeft">
-        <button
-          className="hamburgerBtn"
-          type="button"
-          aria-label="Menu"
-          onClick={() => setMobileMenuOpen(true)}
-        >
+        <button className="hamburgerBtn" type="button" aria-label="Menu" onClick={() => setMobileMenuOpen(true)}>
           ≡
         </button>
-        <div className="mobileTopTitle">
-          {menu === "外掛選房程式" ? "外掛選房程式" : "遊戲介紹"}
-        </div>
+        <div className="mobileTopTitle">{menu === "外掛選房程式" ? "外掛選房程式" : "遊戲介紹"}</div>
       </div>
 
       {page !== "menuVendorPick" && (
@@ -644,9 +731,10 @@ export default function FrontApp() {
 
                 <button
                   className="vendorPickBtn"
-                  disabled={!mVendor || !mGame}
-                  style={!mVendor || !mGame ? { opacity: 0.35, cursor: "not-allowed" } : undefined}
+                  disabled={!mVendor || !mGame || locked}
+                  style={!mVendor || !mGame || locked ? { opacity: 0.35, cursor: "not-allowed" } : undefined}
                   onClick={() => {
+                    if (locked) return;
                     setActiveVendorId(mVendor);
                     setActiveGameId(mGame || (mVendor === "GR" ? "GR-1" : "戰神賽特"));
                     setRoomPage(1);
@@ -673,7 +761,10 @@ export default function FrontApp() {
 
                   <button
                     className="vendorPickBtn"
+                    disabled={locked}
+                    style={locked ? { opacity: 0.35, cursor: "not-allowed" } : undefined}
                     onClick={() => {
+                      if (locked) return;
                       setActiveVendorId(v.id);
                       setActiveGameId(v.id === "GR" ? "GR-1" : "戰神賽特");
                       setRoomPage(1);
@@ -689,7 +780,8 @@ export default function FrontApp() {
           </div>
         </MainWithVideo>
 
-        {showUsePrompt && !isDisabled && !forceModal && (
+        {/* ✅ 5 分鐘提示窗（只在有次數且非 unlimited 才出現） */}
+        {showUsePrompt && !isDisabled && !forceModal && !noUses && !isUnlimited && (
           <div className="modalMask" onClick={onNotUse}>
             <div className="modalCard" onClick={(e) => e.stopPropagation()}>
               <div className="modalTitle">提示</div>
@@ -712,236 +804,245 @@ export default function FrontApp() {
     );
   }
 
-// ✅ rooms
-if (page === "rooms") {
-  return (
-    <div className="app">
-      {MobileTopbar}
-      {MobileDrawer}
+  // ✅ rooms
+  if (page === "rooms") {
+    return (
+      <div className="app">
+        {MobileTopbar}
+        {MobileDrawer}
 
-      <div className="desktopOnly">
-        <Sidebar />
-      </div>
-
-      <MainWithVideo src={mainVideoSrc}>
-        {/* 桌機：左側遊戲列表 */}
-        <div className="gamesDockLeft desktopOnly">
-          <div className="gamesTopBar">
-            <div className="gamesTitle">遊戲</div>
-            <button className="backBtn" onClick={() => setPage("menuVendorPick")}>
-              返回
-            </button>
-          </div>
-
-          <div className="gamesList">
-            {gamesForRooms.map((g) => {
-              const active = g.id === activeGameId;
-              return (
-                <div key={g.id} className={active ? "gameRow active" : "gameRow"}>
-                  <div className="gameThumbWrap">
-                    <img className="gameThumb" src={g.img} alt={g.name} />
-                  </div>
-                  <div className="gameInfo">
-                    <div className="gameName">{g.name}</div>
-                    <div className="gameMeta">
-                      {g.id}（共 {activeGame?.totalRooms ?? g.totalRooms} 房）
-                    </div>
-                  </div>
-                  <button
-                    className="gamePickBtnSmall"
-                    onClick={() => {
-                      setActiveGameId(g.id);
-                      setRoomPage(1);
-                      setSelectedRoom(null);
-                    }}
-                  >
-                    選擇
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-
-          <div className="refreshHint">實時更新（區段：{bucket3Min}）</div>
+        <div className="desktopOnly">
+          <Sidebar />
         </div>
 
-        <div className="rightShell">
-          <div className="roomsHeader">
-            <div className="roomsTitle">
-              {activeGame?.id} 選房（共 {activeGame?.totalRooms} 房）
+        <MainWithVideo src={mainVideoSrc}>
+          {/* 桌機：左側遊戲列表 */}
+          <div className="gamesDockLeft desktopOnly">
+            <div className="gamesTopBar">
+              <div className="gamesTitle">遊戲</div>
+              <button className="backBtn" onClick={() => setPage("menuVendorPick")}>
+                返回
+              </button>
             </div>
 
-            <div className="pageBtns">
-              {Array.from({ length: activeGame?.pages ?? 1 }).map((_, idx) => {
-                const n = idx + 1;
-                const active = n === roomPage;
+            <div className="gamesList">
+              {gamesForRooms.map((g) => {
+                const active = g.id === activeGameId;
                 return (
-                  <button
-                    key={n}
-                    className={active ? "pageBtnActive" : "pageBtn"}
-                    onClick={() => {
-                      setRoomPage(n);
-                      setSelectedRoom(null);
-                    }}
-                  >
-                    {n}
-                  </button>
+                  <div key={g.id} className={active ? "gameRow active" : "gameRow"}>
+                    <div className="gameThumbWrap">
+                      <img className="gameThumb" src={g.img} alt={g.name} />
+                    </div>
+                    <div className="gameInfo">
+                      <div className="gameName">{g.name}</div>
+                      <div className="gameMeta">
+                        {g.id}（共 {activeGame?.totalRooms ?? g.totalRooms} 房）
+                      </div>
+                    </div>
+                    <button
+                      className="gamePickBtnSmall"
+                      onClick={() => {
+                        if (locked) return;
+                        setActiveGameId(g.id);
+                        setRoomPage(1);
+                        setSelectedRoom(null);
+                      }}
+                      disabled={locked}
+                      style={locked ? { opacity: 0.35, cursor: "not-allowed" } : undefined}
+                    >
+                      選擇
+                    </button>
+                  </div>
                 );
               })}
             </div>
+
+            <div className="refreshHint">實時更新（區段：{bucket3Min}）</div>
           </div>
 
-          <div className="rightScroll">
-            {/* ✅ 桌機 roomsGrid */}
-            <div className="desktopOnly">
-              <div className="roomsGrid">
-                {rooms.map((r) => {
-                  const isSelected = !locked && selectedRoom?.no === r.no;
+          <div className="rightShell">
+            <div className="roomsHeader">
+              <div className="roomsTitle">
+                {activeGame?.id} 選房（共 {activeGame?.totalRooms} 房）
+              </div>
 
+              <div className="pageBtns">
+                {Array.from({ length: activeGame?.pages ?? 1 }).map((_, idx) => {
+                  const n = idx + 1;
+                  const active = n === roomPage;
                   return (
                     <button
-                      key={r.no}
-                      className={`room-card room-card-btn
-                        ${locked ? "gray" : r.level}
-                        ${!locked && r.hot ? "redHot" : ""}
-                        ${isSelected ? "selected" : ""}
-                      `}
+                      key={n}
+                      className={active ? "pageBtnActive" : "pageBtn"}
                       onClick={() => {
                         if (locked) return;
-                        const reco = makeRecoATG({
-                          gameId: activeGameId,
-                          roomNo: r.no,
-                          bucket3Min,
-                          rate: r.rate,
-                        });
-                        setSelectedRoom({ ...r, reco });
+                        setRoomPage(n);
+                        setSelectedRoom(null);
                       }}
                       disabled={locked}
                       style={locked ? { opacity: 0.35, cursor: "not-allowed" } : undefined}
                     >
-                      <span className="roomNoRow">
-                        <span className="roomNoPrefix">第</span>
-                        <span className="roomNoNum">{String(r.no).padStart(3, "0")}</span>
-                        <span className="roomNoSuffix">台</span>
-                      </span>
-
-                      {!locked && (
-                        <span className="roomRateRow">
-                          <span className="roomRateLabel">大獎中獎率</span>
-                          <span className="roomRateValue">{r.rate}%</span>
-                        </span>
-                      )}
+                      {n}
                     </button>
                   );
                 })}
               </div>
             </div>
 
-            {/* ✅ 手機 roomsGrid */}
-            <div className="mobileOnly">
-              <div className="roomsGrid">
-                {rooms.map((r) => {
-                  const isSelected = !locked && selectedRoom?.no === r.no;
+            <div className="rightScroll">
+              {/* ✅ 桌機 roomsGrid */}
+              <div className="desktopOnly">
+                <div className="roomsGrid">
+                  {rooms.map((r) => {
+                    const isSelected = !locked && selectedRoom?.no === r.no;
 
-                  return (
-                    <button
-                      key={r.no}
-                      className={`room-card room-card-btn
-                        ${locked ? "gray" : r.level}
-                        ${!locked && r.hot ? "redHot" : ""}
-                        ${isSelected ? "selected" : ""}
-                      `}
-                      onClick={() => {
-                        if (locked) return;
-                        const reco = makeRecoATG({
-                          gameId: activeGameId,
-                          roomNo: r.no,
-                          bucket3Min,
-                          rate: r.rate,
-                        });
-                        setSelectedRoom({ ...r, reco });
-                      }}
-                      disabled={locked}
-                      style={locked ? { opacity: 0.35, cursor: "not-allowed" } : undefined}
-                    >
-                      <span className="roomNoRow">
-                        <span className="roomNoPrefix">第</span>
-                        <span className="roomNoNum">{String(r.no).padStart(3, "0")}</span>
-                        <span className="roomNoSuffix">台</span>
-                      </span>
-
-                      {!locked && (
-                        <span className="roomRateRow">
-                          <span className="roomRateLabel">大獎中獎率</span>
-                          <span className="roomRateValue">{r.rate}%</span>
+                    return (
+                      <button
+                        key={r.no}
+                        className={`room-card room-card-btn
+                          ${locked ? "gray" : r.level}
+                          ${!locked && r.hot ? "redHot" : ""}
+                          ${isSelected ? "selected" : ""}
+                        `}
+                        onClick={() => {
+                          if (locked) return;
+                          const reco = makeRecoATG({
+                            gameId: activeGameId,
+                            roomNo: r.no,
+                            bucket3Min,
+                            rate: r.rate,
+                          });
+                          setSelectedRoom({ ...r, reco });
+                        }}
+                        disabled={locked}
+                        style={locked ? { opacity: 0.35, cursor: "not-allowed" } : undefined}
+                      >
+                        <span className="roomNoRow">
+                          <span className="roomNoPrefix">第</span>
+                          <span className="roomNoNum">{String(r.no).padStart(3, "0")}</span>
+                          <span className="roomNoSuffix">台</span>
                         </span>
-                      )}
-                    </button>
-                  );
-                })}
+
+                        {!locked && (
+                          <span className="roomRateRow">
+                            <span className="roomRateLabel">大獎中獎率</span>
+                            <span className="roomRateValue">{r.rate}%</span>
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* ✅ 手機 roomsGrid */}
+              <div className="mobileOnly">
+                <div className="roomsGrid">
+                  {rooms.map((r) => {
+                    const isSelected = !locked && selectedRoom?.no === r.no;
+
+                    return (
+                      <button
+                        key={r.no}
+                        className={`room-card room-card-btn
+                          ${locked ? "gray" : r.level}
+                          ${!locked && r.hot ? "redHot" : ""}
+                          ${isSelected ? "selected" : ""}
+                        `}
+                        onClick={() => {
+                          if (locked) return;
+                          const reco = makeRecoATG({
+                            gameId: activeGameId,
+                            roomNo: r.no,
+                            bucket3Min,
+                            rate: r.rate,
+                          });
+                          setSelectedRoom({ ...r, reco });
+                        }}
+                        disabled={locked}
+                        style={locked ? { opacity: 0.35, cursor: "not-allowed" } : undefined}
+                      >
+                        <span className="roomNoRow">
+                          <span className="roomNoPrefix">第</span>
+                          <span className="roomNoNum">{String(r.no).padStart(3, "0")}</span>
+                          <span className="roomNoSuffix">台</span>
+                        </span>
+
+                        {!locked && (
+                          <span className="roomRateRow">
+                            <span className="roomRateLabel">大獎中獎率</span>
+                            <span className="roomRateValue">{r.rate}%</span>
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </MainWithVideo>
+        </MainWithVideo>
 
-      {selectedRoom && !locked && !forceModal && (
-        <div className="modalMask" onClick={() => setSelectedRoom(null)}>
-          <div
-  className={`modalCard ${
-    selectedRoom?.hot
-      ? "modalRedHot"
-      : selectedRoom?.level === "red"
-      ? "modalRed"
-      : selectedRoom?.level === "yellow"
-      ? "modalYellow"
-      : ""
-  }`}
-  onClick={(e) => e.stopPropagation()}
->
-            <div className="modalTitle">第{String(selectedRoom.no).padStart(3, "0")}台</div>
-            <div className="modalSub">大獎中獎率{selectedRoom.rate}%</div>
+        {selectedRoom && !locked && !forceModal && (
+          <div className="modalMask" onClick={() => setSelectedRoom(null)}>
+            <div
+              className={`modalCard ${
+                selectedRoom?.hot
+                  ? "modalRedHot"
+                  : selectedRoom?.level === "red"
+                  ? "modalRed"
+                  : selectedRoom?.level === "yellow"
+                  ? "modalYellow"
+                  : ""
+              }`}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="modalTitle">第{String(selectedRoom.no).padStart(3, "0")}台</div>
+              <div className="modalSub">大獎中獎率{selectedRoom.rate}%</div>
 
-            <div className="modalLine">建議平轉金額{selectedRoom.reco.flat}元</div>
-            <div className="modalLine">
-              平轉{selectedRoom.reco.spinFrom}轉-{selectedRoom.reco.spinTo}轉
-            </div>
-            <div className="modalLine">建議購買免費遊戲{selectedRoom.reco.buy}元</div>
+              <div className="modalLine">建議平轉金額{selectedRoom.reco.flat}元</div>
+              <div className="modalLine">
+                平轉{selectedRoom.reco.spinFrom}轉-{selectedRoom.reco.spinTo}轉
+              </div>
+              <div className="modalLine">建議購買免費遊戲{selectedRoom.reco.buy}元</div>
 
-            <button className="modalBackBtn" onClick={() => setSelectedRoom(null)}>
-              返回
-            </button>
-          </div>
-        </div>
-      )}
-
-      {showUsePrompt && !isDisabled && !forceModal && (
-        <div className="modalMask" onClick={onNotUse}>
-          <div
-  className={`modalCard ${selectedRoom?.level || ""} ${selectedRoom?.hot ? "redHot" : ""}`}
-  onClick={(e) => e.stopPropagation()}
->
-            <div className="modalTitle">提示</div>
-            <div className="modalSub">當前次數時間已到</div>
-            <div className="modalLine">剩餘次數：{isUnlimited ? "無限" : `${usesLeft} 次`}</div>
-            <div style={{ display: "flex", gap: 10, marginTop: 14 }}>
-              <button className="modalBackBtn" onClick={onUseOne}>
-                使用
-              </button>
-              <button className="modalBackBtn" onClick={onNotUse}>
-                不使用
+              <button className="modalBackBtn" onClick={() => setSelectedRoom(null)}>
+                返回
               </button>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {ForceModalUI}
-    </div>
-  );
-}
+        {/* ✅ 5 分鐘提示窗（rooms頁也要） */}
+        {showUsePrompt && !isDisabled && !forceModal && !noUses && !isUnlimited && (
+          <div className="modalMask" onClick={onNotUse}>
+            <div
+              className={`modalCard ${selectedRoom?.level || ""} ${selectedRoom?.hot ? "redHot" : ""}`}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="modalTitle">提示</div>
+              <div className="modalSub">當前次數時間已到</div>
+              <div className="modalLine">剩餘次數：{isUnlimited ? "無限" : `${usesLeft} 次`}</div>
+              <div style={{ display: "flex", gap: 10, marginTop: 14 }}>
+                <button className="modalBackBtn" onClick={onUseOne}>
+                  使用
+                </button>
+                <button className="modalBackBtn" onClick={onNotUse}>
+                  不使用
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
-  // introGames（維持原本）
+        {ForceModalUI}
+      </div>
+    );
+  }
+
+  /* =========================
+   * introGames（維持原本）
+   * ========================= */
   const vendorsForIntro = [
     { id: "ATG", name: "ATG電子", logo: vendorATG, games: ATG_GAMES },
     { id: "GR", name: "GR電子", logo: vendorGR || vendorATG, games: GR_GAMES },
@@ -970,9 +1071,7 @@ if (page === "rooms") {
       {MobileTopbar}
       {MobileDrawer}
 
-      <div className="desktopOnly">
-        {!introOpen && <Sidebar />}
-      </div>
+      <div className="desktopOnly">{!introOpen && <Sidebar />}</div>
 
       <MainWithVideo src={mainVideoSrc}>
         {!introOpen && (
@@ -997,11 +1096,7 @@ if (page === "rooms") {
                 const expanded = introExpandedVendorId === v.id;
                 return (
                   <div key={v.id}>
-                    <div
-                      className="gameRow"
-                      style={{ cursor: "pointer" }}
-                      onClick={() => toggleVendor(v.id)}
-                    >
+                    <div className="gameRow" style={{ cursor: "pointer" }} onClick={() => toggleVendor(v.id)}>
                       <div className="gameThumbWrap">
                         <img className="gameThumb" src={v.logo} alt={v.name} />
                       </div>
@@ -1086,9 +1181,7 @@ if (page === "rooms") {
 
           <div className="introCard" onClick={(e) => e.stopPropagation()} style={{ position: "relative" }}>
             <div className="introCardHeader">
-              <div className="introCardTitle big48">
-                {INTRO_PAGES[introPage]?.title || "遊戲玩法"}
-              </div>
+              <div className="introCardTitle big48">{INTRO_PAGES[introPage]?.title || "遊戲玩法"}</div>
             </div>
 
             <div className="introCardBody">

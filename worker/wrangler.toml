@@ -1,0 +1,22 @@
+name = "sk-cross-device-api"
+main = "src/index.ts"
+compatibility_date = "2026-02-25"
+
+# 你用 `wrangler d1 create skdb` 建好後，把 database_id 填在這裡
+[[d1_databases]]
+binding = "DB"
+database_name = "sk-auth-db"
+database_id = "b783dc64-da43-4b85-b21f-bcdb0a77edd3"
+
+[vars]
+# 第一次部署請先改密碼
+SUPERADMIN_ID = "super"
+SUPERADMIN_PW = "super123"
+ADMIN1_ID = "admin1"
+ADMIN1_PW = "admin123"
+
+# JWT
+JWT_SECRET = "REPLACE_ME_LONG_RANDOM"
+
+# CORS
+ALLOW_ORIGINS = "*"

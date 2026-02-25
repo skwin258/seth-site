@@ -2597,3 +2597,474 @@ button{ outline: none; }
 
   border-color: rgba(140,165,255,.55) !important;
 }
+
+/* =========================
+   ✅ Admin: Desktop show stack, hide quick grid
+   ✅ Admin: Mobile show quick grid, hide stack
+   (放在 App.css 最底，確保蓋過前面所有重複規則)
+========================= */
+
+/* ✅ 桌機預設（>900px） */
+.adminQuickGrid { display: none !important; }
+.adminNavStack  { display: block !important; }
+
+/* ✅ 手機（<=900px） */
+@media (max-width: 900px){
+  .adminQuickGrid { display: grid !important; }
+  .adminNavStack  { display: none !important; }
+}
+
+/* 預設：桌機顯示直排，隱藏手機四格 */
+.adminQuickGrid { display: none; }
+.adminMsgMobile { display: none; }
+
+/* 預設：桌機直排顯示 */
+.adminNavStack { display: grid; }
+
+/* ✅ 手機：只顯示四格，隱藏桌機直排 */
+@media (max-width: 768px) {
+  .adminQuickGrid { 
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .adminNavStack { 
+    display: none !important;
+  }
+
+  .adminMsgMobile {
+    display: block;
+    margin-top: 12px;
+    font-size: 12px;
+    color: rgba(233,236,255,.85);
+  }
+}
+
+/* ✅ 保證手機只顯示 quickGrid + superOnly；桌機只顯示 navStack */
+
+@media (max-width: 900px) {
+  .adminQuickGrid { display: grid !important; }
+  .adminNavStack  { display: none !important; }
+  .adminSuperOnly { display: flex !important; }
+}
+
+@media (min-width: 901px) {
+  .adminQuickGrid { display: none !important; }
+  .adminNavStack  { display: block !important; }
+  .adminSuperOnly { display: none !important; } /* ✅ 桌機不顯示那顆額外的「管理員」 */
+}
+
+/* =========================
+   ATG / GR 卡片桌機並排修正
+   ========================= */
+
+.vendorGrid{
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 24px;
+  align-items: start;
+}
+
+/* 手機才直排 */
+@media (max-width: 900px){
+  .vendorGrid{
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ===== 桌機：維持 ATG/GR 兩張卡片同排（強制覆蓋） ===== */
+.desktopOnly .vendorGrid2{
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 22px !important;
+  align-items: start;
+}
+
+/* 手機：變 1 欄 */
+@media (max-width: 900px){
+  .desktopOnly .vendorGrid2{
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* =========================
+ * Admin 手機板：整個外框往上、置中
+ * ========================= */
+@media (max-width: 768px) {
+  /* 最外層：負責置中 */
+  .adminRoot {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;   /* 從上開始 */
+    padding: 18px 12px 24px;   /* 四周留白 */
+  }
+
+  /* 你的紅框那一整塊（通常就是這個殼） */
+  .adminShell {
+    width: min(420px, 100%);
+    margin: 0 auto;
+    transform: translateY(-18px); /* ✅ 往上移：你要更上就改 -24px / -32px */
+  }
+}
+
+/* ✅ 強制分開 admin 上下兩塊（手機） */
+@media (max-width: 768px) {
+  .adminRoot .adminShell{
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 1px !important;
+  }
+
+  /* 關鍵：如果被負 margin / translate 疊住，直接把 main 往下推 */
+  .adminRoot .adminMain{
+    margin-top: 18px !important;
+    transform: none !important;
+    position: relative !important;
+    top: 0 !important;
+  }
+
+  .adminRoot .adminSidebar{
+    margin-bottom: 0 !important;
+    transform: none !important;
+    position: relative !important;
+    top: 0 !important;
+  }
+}
+
+/* ✅ 手機：縮短上面 admin 卡片高度 */
+@media (max-width: 768px) {
+
+  /* 上面整張卡 */
+  .adminSidebar{
+    padding: 16px 14px !important;   /* 原本通常 24~32px */
+    min-height: auto !important;     /* 取消撐高 */
+  }
+
+  /* SETH ADMIN 那個標題框 */
+  .adminBrand{
+    margin-bottom: 12px !important;
+    padding: px !important;        /* 讓它變矮 */
+  }
+
+  /* 四顆按鈕區塊 */
+  .adminQuickGrid{
+    gap: 10px !important;            /* 按鈕間距縮小 */
+  }
+
+  /* 每顆按鈕高度 */
+  .adminQuickBtn{
+    padding: 12px 10px !important;
+  }
+}
+
+/* =========================
+   手機：上方 admin 卡片不要撐高
+========================= */
+@media (max-width: 768px) {
+
+  /* 🔥 關鍵：取消撐滿高度 */
+  .adminSidebar{
+    height: auto !important;
+    min-height: unset !important;
+    flex: 0 0 auto !important;   /* ← 最重要 */
+    align-self: flex-start !important;
+  }
+
+  /* 讓下面內容自己撐 */
+  .adminMain{
+    flex: 1 1 auto !important;
+  }
+
+  /* 再縮一點內距（微調） */
+  .adminSidebar{
+    padding: 14px !important;
+  }
+}
+
+@media (max-width: 768px) {
+
+  .adminSidebar{
+    overflow: visible !important;
+  }
+
+}
+
+@media (max-width: 768px){
+
+  .adminQuickGrid{
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 12px !important;
+  }
+
+  /* ⭐ 管理員佔整排 */
+  .adminSuperOnly{
+    grid-column: 1 / -1 !important;
+  }
+}
+
+/* =========================
+   ✅ Admin 手機：內容區塊強制單欄 + 卡片同寬(100%)
+========================= */
+@media (max-width: 768px) {
+  /* 右側主內容改單欄 */
+  .adminRoot .adminContent .adminRow {
+    display: grid !important;
+    grid-template-columns: 1fr !important; /* ← 強制一欄 */
+    gap: 14px !important;
+  }
+
+  /* 每一張卡片都吃滿寬 */
+  .adminRoot .adminCard {
+    width: 100% !important;
+    max-width: none !important;
+  }
+
+  /* 有些地方你 inline 寫了 gridTemplateColumns: "360px 1fr"
+     手機直接覆蓋成一欄 */
+  .adminRoot .adminCard .adminRow {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* =========================
+   ✅ 手機：側邊按鈕文字「完全置中」
+   - 使用者 / 單房覆蓋 / 管理員 都同一套
+   - 數字 adminNavHint 固定釘右邊
+========================= */
+@media (max-width: 768px) {
+  .adminRoot .adminNavBtn,
+  .adminRoot .adminBtn.adminQuickLogout,
+  .adminRoot .adminBtn.adminQuickReload {
+    position: relative !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;  /* 文字置中 */
+    text-align: center !important;
+  }
+
+  /* 左邊那段文字 span 也強制置中 */
+  .adminRoot .adminNavBtn > span:first-child {
+    width: 100% !important;
+    text-align: center !important;
+  }
+
+  /* 右上角數字：釘在右邊，不影響置中 */
+  .adminRoot .adminNavHint {
+    position: absolute !important;
+    right: 12px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    margin: 0 !important;
+  }
+
+  /* 超管那顆「管理員」按鈕：同寬、不要自己縮 */
+  .adminRoot .adminSuperOnly {
+    width: 100% !important;
+  }
+}
+
+/* =========================================================
+   ✅ 手機/平板：強制側欄按鈕文字「真正置中」
+   你的專案手機版 breakpoint 多用 900px，所以用 900px
+========================================================= */
+@media (max-width: 900px) {
+
+  /* 1) 所有側欄按鈕：置中 */
+  .adminRoot .adminSidebar .adminNavBtn,
+  .adminRoot .adminSidebar .adminBtn.adminQuickLogout,
+  .adminRoot .adminSidebar .adminBtn.adminQuickReload {
+    position: relative !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;   /* ✅ 置中 */
+    text-align: center !important;
+    padding-right: 46px !important;       /* ✅ 讓右邊 badge 不會擠到文字 */
+  }
+
+  /* 2) 第一個 span（👤 使用者 / 🎯 單房覆蓋 / 🛡️ 管理員）：強制撐滿並置中 */
+  .adminRoot .adminSidebar .adminNavBtn > span:first-child {
+    flex: 1 1 auto !important;
+    width: 100% !important;
+    text-align: center !important;
+    justify-content: center !important;
+  }
+
+  /* 3) 右邊數字 badge：釘死在右邊，不參與排版 */
+  .adminRoot .adminSidebar .adminNavHint {
+    position: absolute !important;
+    right: 14px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    margin: 0 !important;
+  }
+
+  /* 4) 超管那顆「管理員」按鈕：一定要滿寬 */
+  .adminRoot .adminSidebar .adminSuperOnly {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* =========================================================
+     ✅ 管理員管理頁：下面那張卡不要變窄（兩張都同寬）
+  ========================================================= */
+  .adminRoot .adminMain .adminRow {
+    grid-template-columns: 1fr !important;  /* ✅ 直排滿寬 */
+  }
+
+  .adminRoot .adminMain .adminCard {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* 如果你有表格容器把寬度縮了，也一起解掉 */
+  .adminRoot .adminMain .adminTableWrap {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+}
+
+/* ✅ 修正：手機版「登出後台 / 重新載入」兩顆按鈕文字置中 */
+@media (max-width: 900px) {
+  .adminRoot .adminSidebar .adminBtn.adminQuickLogout,
+  .adminRoot .adminSidebar .adminBtn.adminQuickReload {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important; /* ✅ 置中 */
+    text-align: center !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+}
+
+/* ✅ 修正：手機版下面面板「滿寬同寬」(把限制寬度的外層也一起打開) */
+@media (max-width: 900px) {
+  .adminRoot .adminMain,
+  .adminRoot .adminContent,
+  .adminRoot .adminTopbar {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* 有些版型會給 content 一個 max-width 或左右 padding 太大 */
+  .adminRoot .adminContent {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  /* 讓每張卡都吃滿 */
+  .adminRoot .adminMain .adminCard {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  /* 管理員管理那個 form 卡如果有內層再縮，強制滿寬 */
+  .adminRoot .adminMain .adminCard > * {
+    max-width: 100% !important;
+  }
+}
+
+/* =========================
+   ✅ 使用者清單：卡片內按鈕內容靠左（不要置中）
+========================= */
+@media (max-width: 768px) {
+  /* 只影響「右側內容區」的清單按鈕，避免動到側邊欄 */
+  .adminRoot .adminMain .adminCard button.adminNavBtn {
+    justify-content: flex-start !important;
+    text-align: left !important;
+    padding-left: 14px !important;
+  }
+
+  /* 讓內部文字區塊吃滿寬度，左對齊 */
+  .adminRoot .adminMain .adminCard button.adminNavBtn > div {
+    width: 100% !important;
+    text-align: left !important;
+  }
+}
+
+/* =========================
+   ✅ 管理員列表：名稱不要直排（防止被擠到一個字一行）
+========================= */
+@media (max-width: 768px) {
+  .adminTableWrap {
+    overflow-x: auto !important;   /* 太寬就橫向可滑 */
+  }
+
+  .adminTable {
+    min-width: 100% !important;
+  }
+
+  .adminTable th,
+  .adminTable td {
+    white-space: nowrap !important;     /* 不換行就不會直排 */
+    word-break: keep-all !important;    /* 中文不要硬切 */
+    writing-mode: horizontal-tb !important;
+    text-orientation: mixed !important;
+  }
+
+  /* 名稱欄再保險一次 */
+  .adminTable td:nth-child(2),
+  .adminTable th:nth-child(2) {
+    min-width: 140px !important;
+  }
+}
+
+/* ✅ 手機：管理員列表剛好貼齊，不要橫向滑動 */
+@media (max-width: 768px){
+  .adminRoot .adminTableWrap{
+    overflow-x: hidden !important;   /* ← 不要滑 */
+  }
+
+  .adminRoot .adminTable{
+    width: 100% !important;          /* ← 剛好貼齊容器 */
+    min-width: 0 !important;         /* ← 取消任何撐寬 */
+    table-layout: fixed !important;  /* ← 強制用欄寬分配 */
+  }
+
+  .adminRoot .adminTable th,
+  .adminRoot .adminTable td{
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    writing-mode: horizontal-tb !important;
+  }
+
+  /* 4 欄寬度：總和 = 100%（你想再微調就改這裡） */
+  .adminRoot .adminTable th:nth-child(1),
+  .adminRoot .adminTable td:nth-child(1){ width: 28% !important; } /* 帳號 */
+
+  .adminRoot .adminTable th:nth-child(2),
+  .adminRoot .adminTable td:nth-child(2){ width: 32% !important; } /* 名稱 */
+
+  .adminRoot .adminTable th:nth-child(3),
+  .adminRoot .adminTable td:nth-child(3){ width: 18% !important; } /* 角色 */
+
+  .adminRoot .adminTable th:nth-child(4),
+  .adminRoot .adminTable td:nth-child(4){
+    width: 22% !important;           /* 刪除按鈕 */
+    text-align: center !important;
+  }
+
+  /* 刪除按鈕縮小一點，避免把表格撐爆 */
+  .adminRoot .adminTable td:nth-child(4) .adminBtn{
+    padding: 10px 10px !important;
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+}
+
+.modalMask {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: auto;
+}
+
+.modalCard {
+  position: relative;
+  z-index: 10000;
+  pointer-events: auto;
+}

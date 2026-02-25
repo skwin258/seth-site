@@ -1,10 +1,11 @@
+// src/pages/Login.jsx
 import React, { useMemo, useState } from "react";
 import "../App.css";
 import { useNavigate } from "react-router-dom";
 import { useSite } from "../store/SiteStore";
 
 import bgVideo from "../assets/bg.mp4";
-import { login as authLogin } from "../services/authService";
+import { apiLogin } from "../services/authService";
 
 export default function Login() {
   const nav = useNavigate();
@@ -13,13 +14,16 @@ export default function Login() {
   const [account, setAccount] = useState("");
   const [pin, setPin] = useState("");
   const [err, setErr] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const canSubmit = useMemo(() => {
-    return account.trim().length > 0 && pin.trim().length > 0;
-  }, [account, pin]);
+    return !!account.trim() && !!pin.trim() && !loading;
+  }, [account, pin, loading]);
 
-  function doLogin() {
+  async function doLogin() {
+    if (loading) return;
     setErr("");
+
     const a = account.trim();
     const p = pin.trim();
 
@@ -29,11 +33,33 @@ export default function Login() {
     }
 
     try {
-      const user = authLogin(a, p);
+      setLoading(true);
+
+      const result = await apiLogin(a, p);
+
+      // ✅ 相容：apiLogin 回 {ok,user} 或直接回 sess
+      const ok = typeof result?.ok === "boolean" ? result.ok : !!result?.id;
+      const user = result?.user || result;
+
+      if (!ok || !user) {
+        setErr(result?.msg || "登入失敗");
+        return;
+      }
+
+      // ✅ 存本機（F5 不登出）
+      localStorage.setItem("sk_user", JSON.stringify(user));
+      localStorage.setItem("sk_current_user", JSON.stringify(user));
+
+      // ✅ 更新全域狀態
       setCurrentUser(user);
+
+      // ✅ 回首頁
       nav("/", { replace: true });
     } catch (e) {
-      setErr(e?.message || "登入失敗");
+      console.error(e);
+      setErr(e?.message || "伺服器連線失敗");
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -62,9 +88,8 @@ export default function Login() {
           placeholder="請輸入會員帳號"
           value={account}
           onChange={(e) => setAccount(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") doLogin();
-          }}
+          onKeyDown={(e) => e.key === "Enter" && doLogin()}
+          autoComplete="username"
         />
 
         <input
@@ -73,9 +98,8 @@ export default function Login() {
           placeholder="請輸入密碼"
           value={pin}
           onChange={(e) => setPin(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") doLogin();
-          }}
+          onKeyDown={(e) => e.key === "Enter" && doLogin()}
+          autoComplete="current-password"
         />
 
         {err && (
@@ -90,7 +114,7 @@ export default function Login() {
           disabled={!canSubmit}
           style={!canSubmit ? { opacity: 0.55, cursor: "not-allowed" } : undefined}
         >
-          登入
+          {loading ? "登入中..." : "登入"}
         </button>
       </div>
     </div>
