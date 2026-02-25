@@ -194,9 +194,9 @@ const ATG_GAMES = [
   { id: "武俠", name: "武俠", img: game5, totalRooms: 500, pages: 1 },
 ];
 const GR_GAMES = [
-  { id: "GR-1", name: "雷神", img: gr1, totalRooms: 25, pages: 1 },
-  { id: "GR-2", name: "戰神呂布", img: gr2, totalRooms: 25, pages: 1 },
-  { id: "GR-3", name: "魔龍傳奇", img: gr3, totalRooms: 25, pages: 1 },
+  { id: "雷神", name: "雷神", img: gr1, totalRooms: 25, pages: 1 },
+  { id: "戰神呂布", name: "戰神呂布", img: gr2, totalRooms: 25, pages: 1 },
+  { id: "魔龍傳奇", name: "魔龍傳奇", img: gr3, totalRooms: 25, pages: 1 },
 ];
 const VENDORS = [
   { id: "ATG", name: "ATG電子", logo: vendorATG, hasCode: true },
@@ -414,8 +414,8 @@ useEffect(() => {
     if (!activeGameBase) return null;
     return {
       ...activeGameBase,
-      pages: gameCfg?.pages ?? activeGameBase.pages,
-      totalRooms: gameCfg?.totalRooms ?? activeGameBase.totalRooms,
+      pages: activeGameBase.pages,
+      totalRooms: activeGameBase.totalRooms,
     };
   }, [activeGameBase, gameCfg]);
 
@@ -427,8 +427,19 @@ useEffect(() => {
     });
   }, [activeGame?.id, activeGame?.totalRooms, bucket3Min]);
 
-  const VISIBLE_PER_PAGE = 500;
-  const startIndex = (roomPage - 1) * VISIBLE_PER_PAGE + 1;
+  // ✅ 每頁顯示數：以遊戲設定為準（GR=25, ATG=500/1000/3000 用 pages 切）
+const effectiveTotalRooms = activeGame?.totalRooms ?? activeGameBase?.totalRooms ?? 0;
+const effectivePages = activeGame?.pages ?? activeGameBase?.pages ?? 1;
+
+// ✅ 每頁要顯示幾間（例如 ATG 3000/6=500；GR 25/1=25）
+const VISIBLE_PER_PAGE = Math.max(1, Math.ceil(effectiveTotalRooms / effectivePages));
+
+// ✅ 這頁起始房號
+const startIndex = (roomPage - 1) * VISIBLE_PER_PAGE + 1;
+
+// ✅ 這頁實際要顯示幾間（最後一頁可能不足）
+const remaining = Math.max(0, effectiveTotalRooms - startIndex + 1);
+const visibleCount = Math.min(VISIBLE_PER_PAGE, remaining);
 
   const rooms = useMemo(() => {
     return Array.from({ length: VISIBLE_PER_PAGE }).map((_, i) => {
@@ -458,6 +469,11 @@ useEffect(() => {
    * ========================= */
   const [mVendor, setMVendor] = useState("ATG");
   const [mGame, setMGame] = useState("");
+
+  useEffect(() => {
+   setRoomPage(1);
+   setSelectedRoom(null);
+  }, [activeVendorId, activeGameId]);
 
   const mGames = useMemo(() => (mVendor === "GR" ? GR_GAMES : ATG_GAMES), [mVendor]);
 
@@ -836,7 +852,7 @@ useEffect(() => {
                     <div className="gameInfo">
                       <div className="gameName">{g.name}</div>
                       <div className="gameMeta">
-                        {g.id}（共 {activeGame?.totalRooms ?? g.totalRooms} 房）
+                        {g.id}（共 {g.totalRooms} 房）
                       </div>
                     </div>
                     <button

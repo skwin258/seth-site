@@ -320,9 +320,9 @@ export default function Admin() {
         {/* Sidebar */}
         <aside className="adminSidebar">
           <div className="adminBrand">
-            <div className="adminBrandTitle">SETH ADMIN</div>
+            <div className="adminBrandTitle">SK程式後台管理</div>
             <div className="adminBrandSub">
-              登入：{adminSess?.name || adminSess?.id}（{role}）
+              目前身份：{adminSess?.name || adminSess?.id}（{role}）
             </div>
           </div>
 
@@ -334,12 +334,12 @@ export default function Admin() {
                 onClick={() => setTab("users")}
                 type="button"
               >
-                <span>👤 使用者</span>
+                <span>👤 會員管理</span>
                 <span className="adminNavHint">{usersArr.length}</span>
               </button>
 
               <button className="adminBtn adminQuickLogout" onClick={doAdminLogout} type="button">
-                登出後台
+                登出系統
               </button>
 
               <button
@@ -347,7 +347,7 @@ export default function Admin() {
                 onClick={() => setTab("override")}
                 type="button"
               >
-                <span>🎯 單房覆蓋</span>
+                <span>🎯 參數設定</span>
                 <span className="adminNavHint">{overrideCount}</span>
               </button>
 
@@ -361,7 +361,7 @@ export default function Admin() {
                   onClick={() => setTab("admins")}
                   type="button"
                 >
-                  <span>🛡️ 管理員</span>
+                  <span>🛡️ 管理員權限</span>
                   <span className="adminNavHint">
                     {adminsArr.filter((a) => a?.role === "admin").length}
                   </span>
@@ -376,7 +376,7 @@ export default function Admin() {
                 onClick={() => setTab("users")}
                 type="button"
               >
-                <span>👤 使用者</span>
+                <span>👤 會員管理</span>
                 <span className="adminNavHint">{usersArr.length}</span>
               </button>
 
@@ -385,7 +385,7 @@ export default function Admin() {
                 onClick={() => setTab("override")}
                 type="button"
               >
-                <span>🎯 單房覆蓋</span>
+                <span>🎯 房間參數設定</span>
                 <span className="adminNavHint">{overrideCount}</span>
               </button>
 
@@ -395,7 +395,7 @@ export default function Admin() {
                   onClick={() => setTab("admins")}
                   type="button"
                 >
-                  <span>🛡️ 管理員</span>
+                  <span>🛡️ 管理員權限</span>
                   <span className="adminNavHint">
                     {adminsArr.filter((a) => a?.role === "admin").length}
                   </span>
@@ -409,7 +409,7 @@ export default function Admin() {
               </button>
 
               <button className="adminBtn" onClick={doAdminLogout} type="button">
-                登出後台
+                登出系統
               </button>
 
               {msg && (
@@ -428,9 +428,9 @@ export default function Admin() {
           <div className="adminTopbar">
             <div>
               <div className="adminTitle">
-                {tab === "users" ? "使用者面板" : tab === "override" ? "選房數據（單房修改）" : "管理員管理"}
+                {tab === "users" ? "系統權限控制" : tab === "override" ? "房間參數調整" : "管理員權限管理"}
               </div>
-              <div className="adminMeta">深色科技風後台 · 只改 UI 不改邏輯</div>
+              <div className="adminMeta">管理後台操作帳號與系統存取權限</div>
             </div>
           </div>
 
@@ -558,7 +558,7 @@ export default function Admin() {
             {tab === "override" && (
               <div className="adminRow" style={{ alignItems: "start" }}>
                 <div className="adminCard">
-                  <div style={{ fontWeight: 900, marginBottom: 10 }}>選房數據（單房修改）</div>
+                  <div style={{ fontWeight: 900, marginBottom: 10 }}>單房參數設定</div>
 
                   <div style={{ display: "grid", gap: 10 }}>
                     <div>
@@ -589,29 +589,30 @@ export default function Admin() {
 
                     <div className="adminRow">
                       <div>
-                        <div className="adminLabel">第幾房（1-5000）</div>
+                        <div className="adminLabel">房間編號（1-3000）</div>
                         <input className="adminInput" placeholder="例如 280" value={cfgRoomNo} onChange={(e) => setCfgRoomNo(e.target.value)} />
                       </div>
                       <div>
-                        <div className="adminLabel">大獎中獎率（1-99）</div>
+                        <div className="adminLabel">中獎率（1%-99%）</div>
                         <input className="adminInput" placeholder="例如 93" value={cfgHotRate} onChange={(e) => setCfgHotRate(e.target.value)} />
                       </div>
                     </div>
 
-                    <button className="adminBtn" onClick={applyRoomOverride} type="button">套用（只改這一房）</button>
+                    <button className="adminBtn" onClick={applyRoomOverride} type="button">儲存設定</button>
 
                     <div style={{ fontSize: 12, color: "rgba(233,236,255,.60)" }}>
-                      目前已套用（統計）：{overrideCount} 房（不顯示 JSON）
+                      目前已設定房間數：{overrideCount} 房
                     </div>
                   </div>
                 </div>
 
                 <div className="adminCard">
-                  <div style={{ fontWeight: 900, marginBottom: 10 }}>快速提示</div>
+                  <div style={{ fontWeight: 900, marginBottom: 10 }}>操作說明</div>
                   <div style={{ fontSize: 13, color: "rgba(233,236,255,.70)", lineHeight: 1.65 }}>
-                    <div>• 這裡只會修改「單一房號」的大獎中獎率。</div>
-                    <div>• 套用後前台會透過你現有的 getRoomRateOverride() 即時反映。</div>
-                    <div>• 若你要做「指定管理員只能看到自己建立的 users」，那是 users/admins 的 list 過濾邏輯。</div>
+                    <div>• 本功能可調整指定房間的參數設定</div>
+                    <div>• 儲存後將立即生效</div>
+                    <div>• 不同房間可獨立設定權重數值</div>
+                    <div>• 僅具備權限的管理員可進行修改</div>
                   </div>
                 </div>
               </div>
@@ -621,7 +622,7 @@ export default function Admin() {
             {tab === "admins" && isSuper && (
               <div className="adminRow" style={{ alignItems: "start" }}>
                 <div className="adminCard">
-                  <div style={{ fontWeight: 900, marginBottom: 10 }}>超管：新增管理員</div>
+                  <div style={{ fontWeight: 900, marginBottom: 10 }}>建立管理員帳號</div>
 
                   <div style={{ display: "grid", gap: 10 }}>
                     <div>
@@ -644,7 +645,7 @@ export default function Admin() {
                 </div>
 
                 <div className="adminCard">
-                  <div style={{ fontWeight: 900, marginBottom: 10 }}>管理員列表</div>
+                  <div style={{ fontWeight: 900, marginBottom: 10 }}>已授權管理員</div>
 
                   <div className="adminTableWrap">
                     <table className="adminTable">
@@ -682,7 +683,7 @@ export default function Admin() {
 
                   <div style={{ height: 10 }} />
                   <div style={{ fontSize: 12, color: "rgba(233,236,255,.55)" }}>
-                    只有 superadmin 可以新增/刪除管理員
+                    此操作僅限最高權限管理員
                   </div>
                 </div>
               </div>
